@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AstrX\Controller;
+namespace AstrX\User\Controller;
 
 use AstrX\Captcha\CaptchaService;
 use AstrX\Csrf\CsrfHandler;
@@ -12,9 +12,10 @@ use AstrX\Result\DiagnosticsCollector;
 use AstrX\Result\Result;
 use AstrX\Routing\UrlGenerator;
 use AstrX\Session\PrgHandler;
-use AstrX\Site\DefaultTemplateContext;
+use AstrX\Template\TemplateVars;
 use AstrX\User\UserService;
 use AstrX\User\UserSession;
+use AstrX\Kernel\AbstractController;
 
 /**
  * Login form controller.
@@ -29,7 +30,7 @@ final class LoginController extends AbstractController
 
     public function __construct(
         DiagnosticsCollector                   $collector,
-        private readonly DefaultTemplateContext $ctx,
+        private readonly TemplateVars $ctx,
         private readonly Request               $request,
         private readonly UserSession           $session,
         private readonly UserService           $userService,

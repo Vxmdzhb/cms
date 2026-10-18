@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AstrX\Controller;
+namespace AstrX\Retention\Controller;
 
 use AstrX\Admin\AuditLogger;
 use AstrX\Auth\Gate;
@@ -15,7 +15,8 @@ use AstrX\Result\Result;
 use AstrX\Retention\RetentionService;
 use AstrX\Session\FlashBag;
 use AstrX\Session\PrgHandler;
-use AstrX\Site\DefaultTemplateContext;
+use AstrX\Template\TemplateVars;
+use AstrX\Kernel\AbstractController;
 
 /**
  * Data-retention / ephemerality console (/admin-retention).
@@ -32,7 +33,7 @@ final class AdminRetentionController extends AbstractController
 
     public function __construct(
         DiagnosticsCollector                    $collector,
-        private readonly DefaultTemplateContext $ctx,
+        private readonly TemplateVars $ctx,
         private readonly Request                $request,
         private readonly Gate                   $gate,
         private readonly Translator             $t,

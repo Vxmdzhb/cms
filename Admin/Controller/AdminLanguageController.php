@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AstrX\Controller;
+namespace AstrX\Admin\Controller;
 
 use AstrX\Admin\AuditLogger;
 use AstrX\Auth\Gate;
@@ -16,11 +16,12 @@ use AstrX\Result\Result;
 use AstrX\Routing\UrlGenerator;
 use AstrX\Session\FlashBag;
 use AstrX\Session\PrgHandler;
-use AstrX\Site\DefaultTemplateContext;
+use AstrX\Template\TemplateVars;
 use AstrX\I18n\Translator;
 
 use function AstrX\Support\configDir;
 use function AstrX\Support\langDir;
+use AstrX\Kernel\AbstractController;
 
 /**
  * Admin — Languages: a no-JavaScript translation console.
@@ -45,7 +46,7 @@ final class AdminLanguageController extends AbstractController
 
     public function __construct(
         DiagnosticsCollector                    $collector,
-        private readonly DefaultTemplateContext $ctx,
+        private readonly TemplateVars $ctx,
         private readonly Request                $request,
         private readonly Gate                   $gate,
         private readonly Translator             $t,

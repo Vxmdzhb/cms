@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AstrX\Controller;
+namespace AstrX\News\Controller;
 
 use AstrX\Config\Config;
 use AstrX\Http\Request;
@@ -10,6 +10,7 @@ use AstrX\News\NewsRepository;
 use AstrX\Result\DiagnosticsCollector;
 use AstrX\Result\Result;
 use AstrX\Routing\CurrentUrl;
+use AstrX\Kernel\AbstractController;
 
 /**
  * Serves the site's news as an Atom 1.0 feed.

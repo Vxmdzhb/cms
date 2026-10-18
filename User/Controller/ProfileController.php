@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace AstrX\Controller;
+namespace AstrX\User\Controller;
 
 use AstrX\Http\HttpStatus;
 use AstrX\Http\Request;
@@ -11,12 +11,13 @@ use AstrX\Result\DiagnosticsCollector;
 use AstrX\Result\Result;
 use AstrX\Routing\CurrentUrl;
 use AstrX\Routing\UrlGenerator;
-use AstrX\Api\ContextScope;
-use AstrX\Site\DefaultTemplateContext;
+use AstrX\Template\ContextScope;
+use AstrX\Template\TemplateVars;
 use AstrX\User\AvatarService;
 use AstrX\User\UserGroup;
 use AstrX\User\UserRepository;
 use AstrX\User\UserSession;
+use AstrX\Kernel\AbstractController;
 
 /**
  * Public user profile page.
@@ -35,7 +36,7 @@ final class ProfileController extends AbstractController
 {
     public function __construct(
         DiagnosticsCollector $collector,
-        private readonly DefaultTemplateContext $ctx,
+        private readonly TemplateVars $ctx,
         private readonly Request $request,
         private readonly CurrentUrl $currentUrl,
         private readonly UserRepository $userRepo,

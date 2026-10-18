@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AstrX\Controller;
+namespace AstrX\Admin\Controller;
 
 use AstrX\Admin\AuditLogger;
 use AstrX\Auth\Gate;
@@ -19,13 +19,14 @@ use AstrX\Result\Result;
 use AstrX\Routing\UrlGenerator;
 use AstrX\Session\FlashBag;
 use AstrX\Session\PrgHandler;
-use AstrX\Site\DefaultTemplateContext;
+use AstrX\Template\TemplateVars;
 use AstrX\User\UserGroup;
 use AstrX\User\DeletionMode;
 use AstrX\User\UserRepository;
 use AstrX\User\UserResource;
 use AstrX\User\UserService;
 use AstrX\User\UserSession;
+use AstrX\Kernel\AbstractController;
 
 /**
  * Admin users — user account management + user service configuration on one page.
@@ -49,7 +50,7 @@ final class AdminUsersController extends AbstractController
 
     public function __construct(
         DiagnosticsCollector                   $collector,
-        private readonly DefaultTemplateContext $ctx,
+        private readonly TemplateVars $ctx,
         private readonly Request               $request,
         private readonly UserRepository        $userRepo,
         private readonly Config                $config,

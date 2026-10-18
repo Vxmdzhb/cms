@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AstrX\Controller;
+namespace AstrX\User\Controller;
 
 use AstrX\Http\Request;
 use AstrX\Identicon\IdenticonRenderer;
@@ -10,6 +10,7 @@ use AstrX\Result\Result;
 use AstrX\Routing\CurrentUrl;
 use AstrX\User\AvatarService;
 use AstrX\User\UserRepository;
+use AstrX\Kernel\AbstractController;
 
 /**
  * Raw avatar image endpoint — no template wrapping.

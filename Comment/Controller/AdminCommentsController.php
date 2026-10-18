@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AstrX\Controller;
+namespace AstrX\Comment\Controller;
 
 use AstrX\Admin\AuditLogger;
 use AstrX\Auth\Gate;
@@ -21,7 +21,8 @@ use AstrX\Result\Result;
 use AstrX\Routing\UrlGenerator;
 use AstrX\Session\FlashBag;
 use AstrX\Session\PrgHandler;
-use AstrX\Site\DefaultTemplateContext;
+use AstrX\Template\TemplateVars;
+use AstrX\Kernel\AbstractController;
 
 /**
  * Admin comments — moderation + comment service configuration on one page.
@@ -43,7 +44,7 @@ final class AdminCommentsController extends AbstractController
 
     public function __construct(
         DiagnosticsCollector                   $collector,
-        private readonly DefaultTemplateContext $ctx,
+        private readonly TemplateVars $ctx,
         private readonly Request               $request,
         private readonly CommentRepository     $comments,
         private readonly Config                $config,

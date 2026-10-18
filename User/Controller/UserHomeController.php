@@ -1,16 +1,17 @@
 <?php
 declare(strict_types=1);
 
-namespace AstrX\Controller;
+namespace AstrX\User\Controller;
 
 use AstrX\Http\Response;
 use AstrX\I18n\Translator;
 use AstrX\Result\DiagnosticsCollector;
 use AstrX\Result\Result;
 use AstrX\Routing\UrlGenerator;
-use AstrX\Api\ContextScope;
-use AstrX\Site\DefaultTemplateContext;
+use AstrX\Template\ContextScope;
+use AstrX\Template\TemplateVars;
 use AstrX\User\UserSession;
+use AstrX\Kernel\AbstractController;
 
 /**
  * User home page — shown after login.
@@ -20,7 +21,7 @@ final class UserHomeController extends AbstractController
 {
     public function __construct(
         DiagnosticsCollector                   $collector,
-        private readonly DefaultTemplateContext $ctx,
+        private readonly TemplateVars $ctx,
         private readonly UserSession           $session,
         private readonly UrlGenerator          $urlGen,
         private readonly Translator            $t,

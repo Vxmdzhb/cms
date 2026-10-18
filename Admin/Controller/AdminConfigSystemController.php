@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace AstrX\Controller;
+namespace AstrX\Admin\Controller;
 
 use AstrX\Admin\AuditLogger;
 use AstrX\Auth\Gate;
@@ -22,8 +22,9 @@ use AstrX\Routing\UrlGenerator;
 use AstrX\Session\FlashBag;
 use AstrX\Session\PrgHandler;
 use AstrX\Auth\RequiresPermission;
-use AstrX\Site\DefaultTemplateContext;
+use AstrX\Template\TemplateVars;
 use AstrX\Template\TemplateEngine;
+use AstrX\Kernel\AbstractController;
 
 /**
  * Admin — System configuration editor.
@@ -51,7 +52,7 @@ final class AdminConfigSystemController extends AbstractController
 
     public function __construct(
         DiagnosticsCollector $collector,
-        private readonly DefaultTemplateContext $ctx,
+        private readonly TemplateVars $ctx,
         private readonly Request $request,
         private readonly Config $config,
         private readonly ConfigWriter $writer,

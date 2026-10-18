@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AstrX\Controller;
+namespace AstrX\Admin\Controller;
 
 use AstrX\Admin\AdminService;
 use AstrX\Auth\Gate;
@@ -12,7 +12,8 @@ use AstrX\Result\DiagnosticsCollector;
 use AstrX\Result\Result;
 use AstrX\Routing\CurrentUrl;
 use AstrX\Routing\UrlGenerator;
-use AstrX\Site\DefaultTemplateContext;
+use AstrX\Template\TemplateVars;
+use AstrX\Kernel\AbstractController;
 
 /**
  * Admin section root — /en/admin
@@ -23,7 +24,7 @@ final class AdminController extends AbstractController
 {
     public function __construct(
         DiagnosticsCollector                   $collector,
-        private readonly DefaultTemplateContext $ctx,
+        private readonly TemplateVars $ctx,
         private readonly Gate                  $gate,
         private readonly UrlGenerator          $urlGen,
         private readonly Translator            $t,

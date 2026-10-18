@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AstrX\Controller;
+namespace AstrX\User\Controller;
 
 use AstrX\Captcha\CaptchaService;
 use AstrX\User\EmailService;
@@ -14,10 +14,11 @@ use AstrX\Result\Result;
 use AstrX\Routing\UrlGenerator;
 use AstrX\Session\FlashBag;
 use AstrX\Session\PrgHandler;
-use AstrX\Site\DefaultTemplateContext;
+use AstrX\Template\TemplateVars;
 use AstrX\User\UserService;
 use AstrX\User\UserSession;
 use AstrX\User\Diagnostic\UserNotFoundDiagnostic;
+use AstrX\Kernel\AbstractController;
 
 /**
  * Password recovery controller.
@@ -30,7 +31,7 @@ final class RecoverController extends AbstractController
 
     public function __construct(
         DiagnosticsCollector                   $collector,
-        private readonly DefaultTemplateContext $ctx,
+        private readonly TemplateVars $ctx,
         private readonly Request               $request,
         private readonly UserSession           $session,
         private readonly UserService           $userService,

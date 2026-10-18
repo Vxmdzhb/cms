@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AstrX\Controller;
+namespace AstrX\User\Controller;
 
 use AstrX\Http\Response;
 use AstrX\I18n\Translator;
@@ -11,6 +11,7 @@ use AstrX\Routing\UrlGenerator;
 use AstrX\User\UserSession;
 
 use AstrX\Http\Request;
+use AstrX\Kernel\AbstractController;
 
 /**
  * Destroys the session and redirects to the main page.
