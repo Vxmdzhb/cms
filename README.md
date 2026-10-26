@@ -5,6 +5,8 @@ accounts (registration, login, two-factor, recovery, profiles), the admin panel
 (users, grants, pages, navigation, themes, configuration, audit log, panic
 lockdown), comments, news, invites and data retention.
 
+![The admin panel](docs/screenshot.png)
+
 It also defines the extension points optional modules answer
 (`Retention\RetentionSource`, `Page\SitemapSource`, `User\LoginListener`,
 `User\UserHomeSection`, `Admin\AdminDashboardSection`; see
