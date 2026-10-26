@@ -217,7 +217,7 @@ return [
     'admin.panic.save'         => 'Salva messaggio',
     'admin.panic.saved'        => 'Messaggio di blocco salvato.',
 
-    // Catena hash del registro di audit (R12)
+    // Catena hash del registro di audit
     'admin.audit.chain_intact'   => 'Catena di audit integra — voci verificate:',
     'admin.audit.chain_broken'   => 'CATENA DI AUDIT COMPROMESSA — manomissione rilevata alla voce',
 
@@ -227,7 +227,7 @@ return [
     'admin.comments.mute_lifted' => 'Silenziamento rimosso.',
 
 
-    // ---- Bug-fix additions (fix94) -------------------------------------------
+    // ---- Bug-fix additions -------------------------------------------
     'admin.banlist.route_added'         => 'Rotta aggiunta.',
     'admin.banlist.route_deleted'       => 'Rotta eliminata.',
     'admin.banlist.round_added'         => 'Round aggiunto.',
@@ -277,7 +277,7 @@ return [
     'admin.config.system.invalid_parse_mode'           => 'La modalità di parsing deve essere 0 (plain) o 1 (template). Salvataggio annullato.',
 
 
-    // ---- Temi (fix95) -------------------------------------------------------
+    // ---- Temi -------------------------------------------------------
     'admin.nav.themes'                    => 'Temi',
     'admin.nav.themes.desc'               => 'Scegli l\'aspetto globale del sito.',
     'WORDING_ADMIN_THEMES.title'          => 'Admin — Temi',
@@ -292,14 +292,14 @@ return [
     'admin.themes.invalid_theme'          => 'Il tema selezionato non è installato.',
     'admin.themes.saved'                  => 'Configurazione tema salvata.',
 
-    // ---- Cache del tema (fix98) ---------------------------------------------
+    // ---- Cache del tema ---------------------------------------------
     'admin.themes.cache_heading'    => 'Cache dei template',
     'admin.themes.cache_desc'       => 'Cancella i template compilati. Usalo se hai modificato i file template e i cambiamenti non appaiono. Normalmente non necessario — il framework controlla i timestamp automaticamente.',
     'admin.themes.btn_clear_cache'  => 'Cancella cache template',
     'admin.themes.cache_cleared'    => 'Cache cancellata — {n} file rimossi.',
 
 
-    // ---- UI modalità eliminazione (fix101) ----------------------------------
+    // ---- UI modalità eliminazione ----------------------------------
     'deletion_mode_help'                 => 'Scegli come eliminare questo account.',
     'deletion_mode_legend_heading'       => 'Cosa significano le modalità di eliminazione?',
     'deletion_mode_soft_redact'          => 'Soft redact',
@@ -313,7 +313,7 @@ return [
     'deletion_mode_full_delete'          => 'Eliminazione completa',
     'deletion_mode_full_delete_desc'     => 'Hard delete — la riga utente viene rimossa e tutti i suoi commenti cascade-eliminati con essa. Nessun coinvolgimento del ghost account. La struttura dei thread VERRÀ distrutta se altri utenti hanno risposto ai commenti eliminati. Non reversibile. Riservato a richieste GDPR di diritto all\'oblio.',
 
-    // ---- Impostazioni email (fix115) ----------------------------------------
+    // ---- Impostazioni email ----------------------------------------
     'admin.config.users.email_settings'      => 'Impostazioni email',
     'admin.config.field.send_verification_email' => 'Invia email di verifica alla registrazione',
     'admin.config.field.send_password_reset_email' => 'Invia email di reset password',

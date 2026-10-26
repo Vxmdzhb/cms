@@ -129,13 +129,13 @@ final class AdminCommentsController extends AbstractController
         $action = self::mStr($posted, 'action', '');
         $id     = self::mInt($posted, 'id', 0);
 
-        // Fix 2.3: validate id at top.
+        // Validate id at top.
         if ($id <= 0) {
             $this->flash->set('error', $this->t->t('admin.comments.invalid_id'));
             return;
         }
 
-        // Fix 2.4: per-comment policy check (delete/hide on admin comments
+        // per-comment policy check (delete/hide on admin comments
         // requires admin role, not just mod). Fetch the comment first so
         // the policy can inspect author type.
         if (in_array($action, ['hide', 'unhide', 'flag', 'unflag', 'delete', 'update'], true)) {
@@ -168,7 +168,7 @@ final class AdminCommentsController extends AbstractController
                         : null);
                 $hidden  = self::mBool($posted, 'hidden');
                 $flagged = self::mBool($posted, 'flagged');
-                // Fix 2.1: explicit error when content is empty.
+                // Explicit error when content is empty.
                 if ($content === '') {
                     $this->flash->set('error', $this->t->t('admin.comments.content_required'));
                     return;
@@ -197,7 +197,7 @@ final class AdminCommentsController extends AbstractController
                 }
                 break;
             case 'flag':
-                // Fix 2.2: emit flash on flag/unflag.
+                // Emit flash on flag/unflag.
                 $r = $this->comments->setFlagged($id, true);
                 $r->drainTo($this->collector);
                 if ($r->isOk()) {
@@ -257,7 +257,7 @@ final class AdminCommentsController extends AbstractController
             if ($k <= 0) { continue; }
             $regexRaw = $regexes[$i] ?? '';
             $pattern = trim(is_scalar($regexRaw) ? (string)$regexRaw : '');
-            // R11 (MED): reject an uncompilable pattern at save so it never reaches
+            // Reject an uncompilable pattern at save so it never reaches
             // disk — a stored bad pattern (e.g. a bare phrase with no delimiters)
             // would 500 every subsequent public comment POST when checkAntispam
             // runs it. Mirrors the R9 username/password_regex save-time check;

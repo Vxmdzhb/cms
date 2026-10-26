@@ -15,15 +15,12 @@ ALTER TABLE `page`
     ADD COLUMN IF NOT EXISTS `api_enabled` TINYINT NOT NULL DEFAULT 0
     AFTER `comments`;
 
--- R10-01 (HIGH): the canonical view MUST expose `module`. The schema is re-run
--- in full on every setup re-entry (runSQL in public/setup.php, NOT a
--- checksum-tracked migration), so this final rebuild is the LAST word on the
--- view's shape. migrate_module_page_ownership.sql adds `module` to the view on
--- first install, but is checksum-skipped on every re-run — so without carrying
--- `module` HERE, a re-run (the normal upgrade path) drops `module` from the
--- view and every DISABLED module's public pages silently fail OPEN
--- (PageHandler reads no module column -> '' -> ModulePageGuard treats it as
--- core/always-on -> shown). Guarantee the column exists, then carry it below.
+-- The view must expose `module`. The schema is re-run in full on every setup
+-- (it isn't a checksum-tracked migration), so this final rebuild decides the
+-- view's shape. Without `module` here, a re-run would drop it from the view,
+-- and the public pages of disabled modules would be shown (ModulePageGuard
+-- would see no module and treat them as core). Make sure the column exists,
+-- then carry it below.
 ALTER TABLE `page`
     ADD COLUMN IF NOT EXISTS `module` VARCHAR(32) NOT NULL DEFAULT ''
     AFTER `api_enabled`;

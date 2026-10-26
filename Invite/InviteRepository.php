@@ -31,8 +31,8 @@ final class InviteRepository
     public function __construct(private readonly PDO $pdo) {}
 
     /**
-     * Create a new (unused) invite. $adminHexId is the issuing admin's 32-char
-     * hex id, stored for audit; null (or a non-hex value) records no issuer.
+     * Create a new, unused invite. $adminHexId is the issuing admin's 32-char hex
+     * id, kept for the audit trail; null (or a non-hex value) records no issuer.
      *
      * @return Result<bool>
      */
@@ -93,8 +93,8 @@ final class InviteRepository
     }
 
     /**
-     * Delete an UNUSED invite. Returns true only when a row was actually removed
-     * (a used or unknown id yields false — a used token is never revocable).
+     * Delete an unused invite. True only when a row was removed; a used or
+     * unknown id gives false (a used invite can't be revoked).
      *
      * @return Result<bool>
      */
@@ -155,9 +155,8 @@ final class InviteRepository
     }
 
     /**
-     * Record which user a claimed code belongs to (audit backfill), after a
-     * successful register. Only sets an as-yet-unattributed code, so it can never
-     * overwrite an already-recorded consumer.
+     * After a successful registration, record which user a claimed code went to.
+     * Only fills in a code nobody is recorded for yet.
      *
      * @return Result<bool>
      */

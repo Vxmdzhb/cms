@@ -86,7 +86,7 @@ final class AdminBanlistController extends AbstractController
 
         $action = self::mStr($posted, 'action', '');
 
-        // R4-19: the page is gated on ADMIN_BANLIST (ban moderation), but adding
+        // The page is gated on ADMIN_BANLIST (ban moderation), but adding
         // / editing / deleting route + round CONFIG (the schedule written to
         // BanlistRepository.config.php) is access configuration and must require
         // the stronger ADMIN_CONFIG_ACCESS on top of it.
@@ -125,7 +125,7 @@ final class AdminBanlistController extends AbstractController
                 break;
 
             case 'update_ban':
-                // Fix 3.1: validate ban_id > 0 before all operations.
+                // Validate ban_id > 0 before all operations.
                 $banId  = self::mInt($posted, 'ban_id', 0);
                 if ($banId <= 0) {
                     $this->flash->set('error', $this->t->t('admin.banlist.invalid_id'));
@@ -199,7 +199,7 @@ final class AdminBanlistController extends AbstractController
                 }
                 $routes = $this->loadRoutes();
                 if (isset($routes[$key])) {
-                    // Fix 3.3: explicit feedback on duplicate.
+                    // Explicit feedback on duplicate.
                     $this->flash->set('error', $this->t->t('admin.banlist.route_exists'));
                     break;
                 }
@@ -216,10 +216,10 @@ final class AdminBanlistController extends AbstractController
                     $this->flash->set('error', $this->t->t('admin.banlist.route_key_required'));
                     break;
                 }
-                // Fix 3.4: refuse delete if any active bans reference this route.
+                // Refuse delete if any active bans reference this route.
                 $usage = $this->banlist->countBansForRoute($key);
                 $usage->drainTo($this->collector);
-                // R4-19: a FAILED count must not read as "0 in use" and fall
+                // A FAILED count must not read as "0 in use" and fall
                 // through to the delete — fail closed and keep the route.
                 if (!$usage->isOk()) {
                     $this->flash->set('error', $this->t->t('admin.banlist.route_in_use'));

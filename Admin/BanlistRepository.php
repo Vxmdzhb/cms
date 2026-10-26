@@ -71,8 +71,7 @@ final class BanlistRepository
     // =========================================================================
 
     /**
-     * All route definitions from config, each with their rounds.
-     * Shape mirrors what the old DB version returned, so callers don't change.
+     * All route definitions from config, each with its rounds.
      *
      * @return list<array{key:string, name:string, rounds:list<array<string,mixed>>}>
      */
@@ -191,12 +190,10 @@ final class BanlistRepository
             $rows = $banStmt->fetchAll(PDO::FETCH_ASSOC);
             /** @var list<array<string,mixed>> $rows */
             foreach ($rows as $row) {
-                // R11 (LOW): fail CLOSED. is_int() on a fetched integer is false
-                // under non-default fetch modes (STRINGIFY_FETCHES, non-mysqlnd,
-                // BIGINT>PHP_INT_MAX), and defaulting prefix_len to 0 makes
-                // applyMask() zero every byte → the ban NEVER matches, silently
-                // un-enforcing the IP ban (fails OPEN). Use is_numeric with a /128
-                // (exact-match) fallback, mirroring Imageboard\BanRepository.
+                // Fail closed. A fetched integer isn't always an int (STRINGIFY_FETCHES,
+                // drivers other than mysqlnd, BIGINT), and a prefix of 0 would make the ban
+                // match nothing. Accept numeric strings and fall back to /128 (exact match),
+                // like Imageboard\BanRepository.
                 $prefixLen = is_int($row['prefix_len']) ? $row['prefix_len'] : (is_numeric($row['prefix_len']) ? (int)$row['prefix_len'] : 128);
                 if (self::ipMatchesCidr($packedIp, is_scalar($row['network']) ? (string)$row['network'] : '', $prefixLen)) {
                     return Result::ok(is_int($row['id']) ? $row['id'] : (is_numeric($row['id']) ? (int)$row['id'] : 0));
@@ -391,10 +388,9 @@ final class BanlistRepository
         $cidr = trim($cidr);
         if (str_contains($cidr, '/')) {
             [$addr, $prefixStr] = explode('/', $cidr, 2);
-            // Reject empty, negative or non-numeric prefixes BEFORE the IPv4 +96
-            // offset. ctype_digit('') and ctype_digit('-10') are both false, so
-            // "1.2.3.4/" and "1.2.3.4/-10" no longer survive to become masks that
-            // (after +96) match every IPv4-mapped address.
+            // Reject empty, negative or non-numeric prefixes before the IPv4 +96 offset,
+            // so "1.2.3.4/" or "1.2.3.4/-10" can't become a mask matching every
+            // IPv4-mapped address.
             if (!ctype_digit($prefixStr)) { return null; }
             $prefix = (int) $prefixStr;
         } else {

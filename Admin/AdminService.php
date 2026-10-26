@@ -32,7 +32,7 @@ final class AdminService
         'admin_config_mail'    => 'admin.nav.config_mail',
         'admin_themes'         => 'admin.nav.themes',
 
-        // ── Audit ──────────────────────────────────────────────────────
+        // ── Audit ────────────────────────────────────────────────────────
         'admin_audit_log'      => 'admin.nav.audit_log',
     ];
 

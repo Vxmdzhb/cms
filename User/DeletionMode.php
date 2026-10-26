@@ -4,23 +4,24 @@ declare(strict_types=1);
 namespace AstrX\User;
 
 /**
- * Controls how a user account and its associated content are handled on deletion.
+ * How an account and its content are handled when it is deleted.
  *
- * full_delete    — Hard delete: the user row is removed and all comments cascade.
- *                  No ghost account involvement. Thread structure is destroyed.
+ * full_delete    The user row is removed and comments cascade. No ghost
+ *                account; thread structure is lost.
  *
- * hard_redact    — PII is wiped; comments are reassigned to the ghost account so
- *                  thread structure is preserved. A tombstone row remains with
- *                  deletion_mode=hard_redact so auditors know a deletion occurred.
+ * hard_redact    Personal data is wiped; comments move to the ghost account so
+ *                threads stay intact. A tombstone row remains, with
+ *                deletion_mode=hard_redact, so auditors can see a deletion
+ *                happened.
  *
- * soft_redact    — Row stays intact in the DB. The rendering layer substitutes
- *                  "[deleted]" for username/content at display time. Reversible.
+ * soft_redact    The row stays as is; pages show "[deleted]" for the username
+ *                and content. Reversible.
  *
- * keep_visible   — Account is closed (cannot log in) but profile and content
- *                  remain fully visible. Useful for voluntary retirement.
+ * keep_visible   The account is closed (no login) but the profile and content
+ *                stay visible. For people retiring an account.
  *
- * keep_suspended — Account is admin-disabled. Content is hidden from public but
- *                  visible to admins. Used for investigations or legal holds.
+ * keep_suspended Disabled by an admin. Content is hidden from the public but
+ *                visible to admins. For investigations or legal holds.
  */
 enum DeletionMode: string
 {

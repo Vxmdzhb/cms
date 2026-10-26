@@ -264,11 +264,11 @@ return [
     'admin.config.access.add_route'  => 'Add route',
     'admin.config.access.add_round'  => 'Add round',
 
-    // Remove these from AdminService NAV_PAGES (no longer separate pages):
+    // Not separate pages any more (not in AdminService NAV_PAGES):
     //   'admin.nav.config_content'
     //   'admin.nav.config_comments'
     //   'admin.nav.config_users'
-    // The lang keys can stay in the file harmlessly — they just won't be used.
+    // The keys can stay; nothing uses them.
 
     // Access page — grants matrix prefix headings
     'admin.config.access.prefix_news'    => 'News',
@@ -482,7 +482,7 @@ return [
     'admin.panic.save'         => 'Save message',
     'admin.panic.saved'        => 'Lockdown message saved.',
 
-    // Audit-log hash chain (R12)
+    // Audit log hash chain
     'admin.audit.chain_intact'   => 'Audit chain intact — entries verified:',
     'admin.audit.chain_broken'   => 'AUDIT CHAIN BROKEN — tampering detected at entry',
 
@@ -503,7 +503,7 @@ return [
     'admin.btn.prev'                    => '← Prev',
     'admin.btn.next'                    => 'Next →',
 
-    // ---- Bug-fix additions (fix94) -------------------------------------------
+    // ---- Bug-fix additions -------------------------------------------
     // Pre-existing missing keys (referenced but never defined)
     'admin.banlist.route_added'         => 'Route added.',
     'admin.banlist.route_deleted'       => 'Route deleted.',
@@ -559,7 +559,7 @@ return [
     'admin.config.system.invalid_template_extension' => 'Template extension must be a dot followed by 1-10 letters or digits (e.g. .html). Save aborted.',
     'admin.config.system.invalid_parse_mode'         => 'Parse mode must be 0 (plain) or 1 (template). Save aborted.',
 
-    // ---- Themes (fix95) -----------------------------------------------------
+    // ---- Themes -----------------------------------------------------
     'admin.nav.themes'                    => 'Themes',
     'admin.nav.themes.desc'               => 'Choose the global look of the site.',
     'WORDING_ADMIN_THEMES.title'          => 'Admin — Themes',
@@ -574,14 +574,14 @@ return [
     'admin.themes.invalid_theme'          => 'The selected theme is not installed.',
     'admin.themes.saved'                  => 'Theme configuration saved.',
 
-    // ---- Theme cache (fix98) ------------------------------------------------
+    // ---- Theme cache ------------------------------------------------
     'admin.themes.cache_heading'    => 'Template cache',
     'admin.themes.cache_desc'       => 'Clear compiled templates from disk. Use this if you edited template files on the server and the changes are not showing up. Normally not needed — the framework checks file timestamps automatically.',
     'admin.themes.btn_clear_cache'  => 'Clear template cache',
     'admin.themes.cache_cleared'    => 'Cache cleared — {n} files removed.',
 
 
-    // ---- Deletion mode UI (fix101) ------------------------------------------
+    // ---- Deletion mode UI ------------------------------------------
     'deletion_mode_help'                 => 'Pick how this account should be deleted.',
     'deletion_mode_legend_heading'       => 'What do the deletion modes mean?',
     'deletion_mode_soft_redact'          => 'Soft redact',
@@ -595,7 +595,7 @@ return [
     'deletion_mode_full_delete'          => 'Full delete',
     'deletion_mode_full_delete_desc'     => 'Hard delete — the user row is removed and all their comments cascade-deleted with it. No ghost account involvement. Thread structure WILL be destroyed if other users replied to deleted comments. Not reversible. Reserved for GDPR right-to-erasure requests.',
 
-    // ---- Email settings (fix115) --------------------------------------------
+    // ---- Email settings --------------------------------------------
     'admin.config.users.email_settings'      => 'Email Settings',
     'admin.config.field.send_verification_email' => 'Send verification email on registration',
     'admin.config.field.send_password_reset_email' => 'Send password reset email on recovery',

@@ -7,8 +7,8 @@ use AstrX\Result\AbstractDiagnostic;
 use AstrX\Result\DiagnosticLevel;
 
 /**
- * Emitted when writing an audit log entry fails.
- * This should be treated as WARNING — the action succeeded, only the log write failed.
+ * Emitted when an audit log entry can't be written. A warning: the action
+ * itself succeeded.
  */
 final class AuditLogDiagnostic extends AbstractDiagnostic
 {

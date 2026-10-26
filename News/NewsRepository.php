@@ -75,7 +75,7 @@ final class NewsRepository
      */
     /**
      * Fetch the N most recent VISIBLE news items. Used by the Atom feed
-     * controller (fix115) and any other "latest news" consumer that
+     * controller and any other "latest news" consumer that
      * doesn't need full pagination semantics.
      *
      * created_at is returned as a UNIX timestamp (created_ts) rather than a

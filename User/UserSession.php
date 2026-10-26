@@ -274,13 +274,11 @@ final class UserSession implements Identity, ThemePreference
     }
 
     /**
-     * XOR $data with a keystream derived from a STABLE per-session key (NOT the
-     * session ID, which rotates on every regeneration — the old SID-based scheme
-     * obfuscated the IMAP password with the login request's SID, then couldn't
-     * decode it after the very next request rotated the SID, so the "don't
-     * re-prompt for webmail" feature never worked, R3-12). Under the default
-     * encrypt=true the whole session (this key included) is AES-encrypted at rest.
-     * Applying this twice (encrypt then decrypt) recovers the original.
+     * XOR $data with a keystream from a stable per-session key. Not the session
+     * id: it changes on every regeneration, and the data would become
+     * unreadable. With encrypt=true (the default) the whole session, this key
+     * included, is also encrypted at rest. Applying it twice gives back the
+     * original.
      */
     private function xorWithSessionKey(string $data): string
     {
@@ -327,7 +325,7 @@ final class UserSession implements Identity, ThemePreference
         $_SESSION[self::KEY] = $sess;
     }
 
-    /** Current session's adopted epoch, or null if not yet adopted (R13). */
+    /** Current session's adopted epoch, or null if not yet adopted. */
     public function sessionEpoch(): ?int
     {
         $v = $this->sessionData()['epoch'] ?? null;
@@ -403,10 +401,9 @@ final class UserSession implements Identity, ThemePreference
     private const LOGOUT_TOKEN_KEY = '_logout_token';
 
     /**
-     * Returns the logout CSRF token for the current session, creating it if
-     * absent. The token is a 32-byte random hex string used to authenticate
-     * GET-based logout links so a malicious page cannot log the user out by
-     * embedding an <img> or link.
+     * The logout CSRF token for this session, created if missing: 32 random
+     * bytes as hex. Logout links are GETs, and this stops another page from
+     * logging the user out with an <img> or a link.
      */
     public function logoutToken(): string
     {

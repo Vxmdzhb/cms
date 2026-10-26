@@ -19,15 +19,15 @@ use AstrX\Kernel\AbstractController;
 use AstrX\Admin\AdminPermission;
 
 /**
- * Panic / lockdown control (/admin-panic).
+ * Panic lockdown (/admin-panic).
  *
- * One switch seals the whole site: while armed, every non-admin request gets a
- * 503 lockdown page and no user-generated mutation runs (the gate lives in
- * ContentManager, at the settling-GET / dispatch point, so it cannot be walked
- * around via a crafted PRG landing — the bug that sank the first attempt). Login
- * + captcha stay open so an admin can still sign in here and disarm it. The
- * operator can also set the message shown to visitors. ADMIN-only (ADMIN_PANIC).
- * State lives in `site_config` (panic_active / panic_message).
+ * One switch seals the whole site: while it's armed, every non-admin request
+ * gets a 503 lockdown page and no user-generated change runs. The check
+ * happens in ContentManager at dispatch, after PRG has settled, so a crafted
+ * redirect can't get around it. Login and captcha stay open, so an admin can
+ * still sign in and disarm it. The operator can set the message visitors
+ * see. Admins only (ADMIN_PANIC). State lives in `site_config`
+ * (panic_active / panic_message).
  */
 final class AdminPanicController extends AbstractController
 {

@@ -9,17 +9,14 @@ use AstrX\Auth\PolicyInterface;
 use AstrX\Auth\PolicyVerdict;
 
 /**
- * Resource-level policy for USER accounts.
+ * Resource-level policy for user accounts.
  *
- * Expected resource: UserResource (a typed id + UserGroup, built by
- * UserResource::fromRow()). Registered against UserResource::class — NOT
- * against UserRepository::class, which is never passed as a resource and so
- * left this policy dead code while CommentPolicy (registered for \stdClass,
- * which is what `(object) $userRow` produces) silently answered every user.*
- * check with "no opinion".
+ * Expects a UserResource (a typed id and UserGroup, built by
+ * UserResource::fromRow()) and is registered against UserResource::class:
+ * the policy is keyed by what callers actually pass to Gate::can().
  *
- * Prevents privilege escalation: an actor who is not an ADMIN cannot edit,
- * delete or re-group an account that ranks at or above their own.
+ * Prevents privilege escalation: someone who isn't an admin can't edit,
+ * delete or regroup an account that ranks at or above their own.
  */
 final class UserPolicy implements PolicyInterface
 {
@@ -31,9 +28,8 @@ final class UserPolicy implements PolicyInterface
             UserPermission::DELETE_OWN,
             UserPermission::EDIT_ANY,
             UserPermission::DELETE_ANY,
-            // USER_PROMOTE has a call site (AdminUsersController) but was NOT
-            // handled by the old match: it fell through `default => null` to
-            // "allow" — the exact silent-forget this interface now prevents.
+            // USER_PROMOTE has a call site (AdminUsersController), so it must be handled
+            // here, not left to fall through.
             UserPermission::PROMOTE,
         ];
     }

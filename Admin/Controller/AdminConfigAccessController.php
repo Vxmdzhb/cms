@@ -48,11 +48,10 @@ final class AdminConfigAccessController extends AbstractController
     /**
      * Section order and headings for the grants matrix: core's prefixes first,
      * then every other prefix a feature or module declares, in registration
-     * order. A section's heading is the translation of
-     * admin.config.access.prefix_<prefix> (a module ships its own in its Admin
-     * catalog), or the prefix itself. EVERY registered permission gets a row —
-     * saveGrants() relies on that, since an unshown permission would read as
-     * "unchecked".
+     * order. A heading is the translation of admin.config.access.prefix_<prefix>
+     * (a module ships its own in its Admin catalog), or the prefix itself. Every
+     * registered permission gets a row: saveGrants() relies on that, since a
+     * permission without one would read as unchecked.
      *
      * @return array<string, string> prefix => heading
      */
@@ -164,11 +163,9 @@ final class AdminConfigAccessController extends AbstractController
         $editableGroups = array_filter(array_keys($existing), fn($g) => $g !== 'ADMIN');
         $shown = array_map(static fn(Permission $perm): string => $perm->id(), $this->permissions->all());
         foreach ($editableGroups as $group) {
-            // Never drop what the form did not show: wildcard patterns
-            // ('comment.*') and ids no feature declares have no checkbox, so
-            // their absence from $p is not a revocation. (Rebuilding from the
-            // checkboxes alone used to silently revoke every chat/board/api/
-            // webmail grant, whose rows the matrix did not render.)
+            // Never drop what the form didn't show: wildcard patterns ('comment.*') and
+            // ids no feature declares have no checkbox, so their absence from $p is not a
+            // revocation.
             $perms = [];
             foreach ((array) ($existing[$group] ?? []) as $kept) {
                 if (is_string($kept) && !in_array($kept, $shown, true)) {
@@ -319,8 +316,7 @@ final class AdminConfigAccessController extends AbstractController
                 }
                 $rows[] = [
                     'perm_value' => $perm->id(),
-                    // 'admin.config.chat' → 'ADMIN_CONFIG_CHAT': the label the
-                    // single Permission enum's case names used to give.
+                    // 'admin.config.chat' → 'ADMIN_CONFIG_CHAT'.
                     'perm_name'  => strtoupper(str_replace('.', '_', $perm->id())),
                     'cells'      => $cells,
                 ];

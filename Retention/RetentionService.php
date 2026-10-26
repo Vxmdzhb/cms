@@ -210,20 +210,19 @@ final class RetentionService
     }
 
     /**
-     * Reap orphaned upload files — blobs on disk whose owning DB row no longer
-     * exists (a board post/thread was deleted, a chat message expired/was purged;
-     * the cascade removed the row but not the file). This is the authoritative
-     * garbage-collector behind the shredding promise; it catches orphans from every
-     * source, including ones an immediate-unlink path missed or a crash left behind.
+     * Reap orphaned uploads: files on disk whose database row is gone (a board
+     * post was deleted, a chat message expired; the row went, the file stayed).
+     * This is the garbage collector behind the promise that deleted things are
+     * really gone, and it also catches files a crash left behind.
      *
-     * SAFE BY CONSTRUCTION:
-     *   - the referenced-name set is built from EVERY store's queries and the
-     *     whole reap is ABORTED if any query errors — a DB hiccup can never cause
-     *     a mass delete, and it stays correct even if two modules share a dir;
-     *   - only files matching the exact random upload-name pattern (32 hex + ext)
-     *     are candidates, so a stray/config file in the dir is never touched;
-     *   - files newer than a 1-hour margin are skipped, so an upload whose row is
-     *     still being written is never raced.
+     * Safe by construction:
+     *   - the set of referenced names comes from every store's queries, and the
+     *     whole reap stops if any query fails, so a database hiccup can never
+     *     cause a mass delete;
+     *   - only files matching the random upload-name pattern (32 hex + extension)
+     *     are candidates, so anything else in the directory is left alone;
+     *   - files younger than an hour are skipped, so an upload whose row is still
+     *     being written is never caught.
      *
      * @return int files removed
      */

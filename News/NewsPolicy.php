@@ -9,14 +9,13 @@ use AstrX\Auth\PolicyInterface;
 use AstrX\Auth\PolicyVerdict;
 
 /**
- * Resource-level policy for News items.
- * News has no ownership concept currently — all news is site-wide, and nothing
- * passes a news resource to Gate::can(). This stub exists for future extension
- * (e.g. per-author news).
+ * Resource-level policy for news items.
  *
- * governs() is deliberately empty: Gate denies any resource-scoped check routed
- * here, which is the correct answer for a policy that has no rules yet. It is
- * NOT the same as the old `return null`, which allowed everything.
+ * News has no owner today (all news is site-wide) and nothing passes a news
+ * resource to Gate::can(); this is here for later, e.g. per-author news.
+ *
+ * governs() is empty on purpose: Gate denies any resource check routed here,
+ * which is right for a policy with no rules.
  */
 final class NewsPolicy implements PolicyInterface
 {

@@ -166,14 +166,14 @@ return [
     'WORDING_PROFILE.description'  => 'View a user profile.',
 
 
-    // ---- Theme picker (fix95) -----------------------------------------------
+    // ---- Theme picker -----------------------------------------------
     'user.settings.theme'                  => 'Theme',
     'user.settings.theme_desc'             => 'Choose how the site looks for you. "Default" means use the site\'s global theme.',
     'user.settings.theme_default'          => 'Default (use site-wide theme)',
     'user.settings.theme_saved'            => 'Theme preference saved.',
     'user.settings.theme_invalid'          => 'That theme is not installed.',
 
-    // ---- API keys (fix100) --------------------------------------------------
+    // ---- API keys --------------------------------------------------
     'user.settings.api_keys'                => 'API Keys',
     'user.settings.api_keys_desc'           => 'Use API keys to access this site programmatically. Each key acts as your account — keep it secret. A key shown here ONCE on creation cannot be recovered, only revoked.',
     'user.settings.api_keys_label'          => 'Label',

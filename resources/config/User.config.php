@@ -8,7 +8,7 @@ return [
         'allow_login_non_verified_users' => true,
         'require_email' => true,
         'require_recovery_email' => true,
-        // Verification email policy (fix114):
+        // Verification email policy:
         //   true  → after registration, a verification email is sent. User
         //           starts with verified=0 and clicks the link to verify.
         //   false → no email is sent. User starts with verified=1 (auto-verified).
@@ -17,11 +17,10 @@ return [
         // Independent of require_email: if require_email=false and a user
         // registers without one, no email is sent regardless of this flag.
         'send_verification_email' => true,
-        // Password recovery email policy (fix114):
-        //   true  → recovery requests trigger an email with a reset link.
-        //   false → recovery requests silently succeed but no email is sent
-        //           (admin must intervene manually). Useful for sites where
-        //           recovery is handled out-of-band.
+        // Password recovery emails:
+        //   true  → a recovery request sends an email with a reset link.
+        //   false → the request appears to succeed but no email is sent, and an
+        //           admin handles it (for sites that do recovery some other way).
         'send_password_reset_email' => true,
         'require_display_name' => true,
         'require_birth_date' => false,
@@ -58,19 +57,15 @@ return [
                 'message' => 'Username must be 1-64 alphanumeric characters.',
             ],
         ],
-        // Additional password rules, applied AFTER the code-enforced floor.
+        // Extra password rules, applied after the built-in floor.
         //
-        // The floor is UserService::MIN_PASSWORD_LENGTH / MAX_PASSWORD_LENGTH
-        // and is NOT configurable: this array ships empty and the admin form can
-        // empty it again in one save, at which point the only remaining check
-        // used to be "not an empty string" — the password "a" was accepted.
+        // The floor is UserService::MIN_PASSWORD_LENGTH / MAX_PASSWORD_LENGTH and
+        // can't be configured, so emptying this list is safe.
         //
-        // Rules here can only ADD restrictions. Deliberately no composition
-        // requirements by default (NIST SP 800-63B: length beats "must contain a
-        // symbol", which mostly produces P@ssw0rd1). The blank-rejection rule
-        // below is the one composition rule worth having: it stops a passphrase
-        // that is 12 characters of whitespace.
-        //   checking_for = the match result that FAILS the rule.
+        // Rules here can only add restrictions. No composition rules by default
+        // (NIST SP 800-63B: length beats "must contain a symbol"). The one below
+        // rejects passphrases made only of whitespace.
+        //   checking_for = the match result that fails the rule.
         'password_regex' => [
             1 => [
                 // Fails when the password is nothing but whitespace.

@@ -1,14 +1,7 @@
--- ---------- migrate_captcha_iframe.sql ----------
+-- ---------- captcha iframe pages ----------
 -- ============================================================
--- AstrX migration: iframe-reloadable captcha pages (fix111)
--- Re-delivery of fix104's migrate_captcha_iframe.sql, but without the
--- api_enabled column reference — that column only exists after
--- migrate_api.sql has run, and the original migration would silently
--- fail on a DB that hadn't seen the API migration yet.
---
--- This version uses only columns present in the canonical base schema,
--- so it works regardless of which other
--- migrations have or haven't been applied.
+-- The page rows for the reloadable captcha. Uses only columns of the base
+-- schema, so it works whichever migrations have run.
 --
 -- Safe to re-run.
 -- ============================================================

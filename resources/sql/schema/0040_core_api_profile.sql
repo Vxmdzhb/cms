@@ -1,6 +1,6 @@
 -- ---------- migrate_api_profile.sql ----------
 -- ============================================================
--- AstrX migration: enable the profile page as the first API endpoint (fix100)
+-- AstrX migration: enable the profile page as the first API endpoint
 -- ============================================================
 
 -- The profile page is now a public read-only endpoint exposing

@@ -160,11 +160,10 @@ final class TwofaController extends AbstractController
         }
 
         if (!$ok) {
-            // Throttle online guessing: a wrong code counts against the same
-            // brute-force lockout the password step uses. Once it locks, the
-            // password step is rejected too, so the attacker can't reopen a fresh
-            // challenge window until the cooldown — the second factor is no longer
-            // freely guessable even by someone who holds the password.
+            // A wrong code counts against the same brute-force lockout as the password
+            // step. Once it locks, the password step is refused too, so the attacker
+            // can't open a fresh challenge until the cooldown ends: the second factor
+            // can't be guessed freely even by someone who has the password.
             if ($this->userService->registerAuthFailure($uid)) {
                 $this->clearPending();
                 $this->flash->set('error', $this->t->t('twofa.locked'));

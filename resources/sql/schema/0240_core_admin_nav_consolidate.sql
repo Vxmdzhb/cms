@@ -1,23 +1,17 @@
--- ---------- migrate_zzz_admin_nav_consolidate.sql ----------
+-- ---------- one admin navbar group ----------
 -- ============================================================
--- AstrX migration: consolidate the admin navbar into one group
--- ============================================================
--- An earlier chat migration created its own admin navbar pin, and the
--- theme-nav migration appends its entry to the LAST admin pin — so upgraded
--- databases could end up with a stray trailing admin group AND a duplicated
--- "Themes" entry living in it. A fresh install is already correct, so on a
--- clean database every statement below is a no-op.
---
--- This migration converges ANY admin navbar to the shipped shape: the
--- Dashboard pin, plus a single alpha-sorted group that holds every other admin
--- entry, with no duplicate entries and no empty pins.
+-- Brings any admin navbar to the shipped shape: the Dashboard pin plus one
+-- alpha-sorted group with every other admin entry, no duplicate entries and
+-- no empty pins. Upgraded databases could have a stray extra admin group and
+-- a duplicate "Themes" entry. On a fresh install every statement does
+-- nothing.
 --
 -- FK chain (all ON DELETE CASCADE): navbar_entry_ids <- navbar_entry <-
 -- navbar_internal / navbar_external. Deleting an id from navbar_entry_ids
--- removes the entry and its internal/external row in one shot.
+-- removes the entry and its internal or external row.
 --
--- Idempotent and destructive-safe: it only ever removes exact duplicates
--- (two entries pointing at the same page) and moves entries between pins.
+-- Idempotent. It only removes exact duplicates (two entries pointing at the
+-- same page) and moves entries between pins.
 -- ============================================================
 
 SET @admin_navbar_id := (SELECT id FROM `navbar` WHERE name = 'admin' LIMIT 1);

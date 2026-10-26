@@ -1,6 +1,6 @@
 -- ---------- migrate_themes.sql ----------
 -- ============================================================
--- AstrX migration: theme system (fix95)
+-- AstrX migration: theme system
 -- Run ONCE on an existing database. Safe to re-run (uses IF NOT EXISTS).
 -- ============================================================
 

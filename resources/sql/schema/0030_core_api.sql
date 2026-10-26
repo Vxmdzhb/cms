@@ -1,6 +1,6 @@
 -- ---------- migrate_api.sql ----------
 -- ============================================================
--- AstrX migration: API core (fix99)
+-- AstrX migration: API core
 -- Adds the api_key table and the page.api_enabled flag.
 -- Safe to re-run.
 -- ============================================================

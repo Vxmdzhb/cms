@@ -38,7 +38,7 @@ use AstrX\Mail\Mailer;
 #[ConfigDomain('EmailService', file: 'User')]
 final class EmailService
 {
-    /** Base URL of the site (e.g. "https://example.com") used to build absolute links in emails. */
+    /** Base URL of the site (e.g. "https://example.com"), for absolute links in emails. */
     private string $siteUrl = '';
     /** Public name of the site, used in greetings and signatures. */
     private string $siteName = 'AstrX';
@@ -211,7 +211,7 @@ final class EmailService
     {
         // Internally, urlGen produces relative paths. Prefix with the
         // configured site URL so the link is absolute in the email body.
-        // R12: build sid-free and pass the token/uid THROUGH toPage as query
+        // Build sid-free and pass the token/uid THROUGH toPage as query
         // params. In cookieless mode toPage would otherwise inject the live
         // session id into this link — which is emailed to an external (clearnet)
         // inbox and, for the change-recovery-email flow, would be a currently

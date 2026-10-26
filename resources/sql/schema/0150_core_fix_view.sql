@@ -1,6 +1,6 @@
 -- ---------- migrate_fix_view.sql ----------
 -- ============================================================
--- AstrX migration: bulletproof resolved_page view rebuild (fix122)
+-- AstrX migration: bulletproof resolved_page view rebuild
 -- Resolves "Unknown column 'index' in 'SELECT'" from PageHandler.
 --
 -- Run with:

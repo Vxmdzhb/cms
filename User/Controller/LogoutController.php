@@ -49,7 +49,7 @@ final class LogoutController extends AbstractController
         $expected = $this->session->logoutToken();
 
         if ($provided === '' || !hash_equals($expected, $provided)) {
-            // No token or wrong token — redirect silently (don't log out)
+            // No token or the wrong one: redirect without logging out.
             Response::redirect($this->urlGen->toPage($this->t->t('WORDING_MAIN')))
                 ->send()->drainTo($this->collector);
             exit;

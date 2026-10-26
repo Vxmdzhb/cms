@@ -27,23 +27,20 @@ use AstrX\Admin\AdminPermission;
 use AstrX\Support\Paths;
 
 /**
- * Admin — System configuration editor.
- * Edits six config files:
- *   config.php          → Prelude, ModuleLoader, ErrorHandler, Injector
- *   Routing.config.php  → Routing
- *   Session.config.php  → Session
+ * Admin: system configuration editor.
+ *
+ * Edits six config files, each in its own section of the page:
+ *   config.php                → Prelude, ModuleLoader, ErrorHandler, Injector
+ *   Routing.config.php        → Routing
+ *   Session.config.php        → Session
  *   TemplateEngine.config.php → TemplateEngine
  *   Translator.config.php     → Translator
  *   ContentManager.config.php → ContentManager
- * Each file is edited as its own sub-section.
- * All saves are atomic (write to .tmp then rename).
+ * Every save is atomic (write a .tmp file, then rename).
  *
- * The #[RequiresPermission] attribute below is the page's ENTRY gate, enforced
- * by ContentManager before this class is constructed. It states in code what the
- * `page_closure` parent row states in data, so a migration that forgets that row
- * — exactly what happened to admin-content and admin-language — cannot leave the
- * page ungated. The ADMIN_CONFIG_SYSTEM check in handle() is the finer gate and
- * still runs: a MOD holds ADMIN_ACCESS and must still get a 403 here.
+ * #[RequiresPermission] below is the page's entry gate, checked before this
+ * class is constructed. The ADMIN_CONFIG_SYSTEM check in handle() is the
+ * finer one: a moderator has ADMIN_ACCESS and still gets a 403 here.
  */
 #[RequiresPermission(AdminPermission::ACCESS)]
 final class AdminConfigSystemController extends AbstractController
@@ -163,7 +160,7 @@ final class AdminConfigSystemController extends AbstractController
         );
         $default = trim(self::mStr($p, 'default_language', 'en'));
 
-        // Fix 6.2: default_language must be in available_languages.
+        // default_language must be in available_languages.
         if ($available === []) {
             $this->flash->set('error',
                 $this->t->t('admin.config.system.no_languages'));
@@ -193,7 +190,7 @@ final class AdminConfigSystemController extends AbstractController
     private function saveRouting(array $p)
     : Result {
         $defaultPage = trim(self::mStr($p, 'default_page', 'WORDING_MAIN'));
-        // Fix 6.3: empty default_page is always wrong.
+        // Empty default_page is always wrong.
         if ($defaultPage === '') {
             $this->flash->set('error',
                 $this->t->t('admin.config.system.default_page_empty'));
@@ -219,7 +216,7 @@ final class AdminConfigSystemController extends AbstractController
      */
     private function saveSession(array $p)
     : Result {
-        // Fix 6.1 (CRITICAL): validate before write — a bad regex or unknown
+        // Validate before write — a bad regex or unknown
         // cipher would crash the next request during session_start and lock
         // the admin out with no way back except editing the config file.
         $sessionIdRegex = trim(self::mStr($p, 'session_id_regex', ''));
@@ -296,20 +293,16 @@ final class AdminConfigSystemController extends AbstractController
             return Result::ok(false);
         }
 
-        // The extension is concatenated onto a filesystem path. Anything with a
-        // separator, a '..' or a null byte is a traversal attempt; anything
-        // without a leading dot silently resolves every template to a file that
-        // does not exist, i.e. a blank site.
+        // The extension is appended to a filesystem path. A separator, '..' or a NUL
+        // byte is a traversal attempt, and without a leading dot every template
+        // would resolve to a file that doesn't exist.
         if (preg_match('/^\.[A-Za-z0-9]{1,10}$/', $extension) !== 1) {
             $this->flash->set('error',
                 $this->t->t('admin.config.system.invalid_template_extension'));
             return Result::ok(false);
         }
 
-        // Only the two modes the engine implements. Any other value took the
-        // PLAIN branch, which used to check <name>.html for existence and then
-        // read <name>.php — so every page answered 200 with an empty body, with
-        // no error and no diagnostic to explain it.
+        // Only the two modes the engine implements.
         if ($parseMode !== TemplateEngine::PARSE_MODE_PLAIN
             && $parseMode !== TemplateEngine::PARSE_MODE_TEMPLATE) {
             $this->flash->set('error',
@@ -323,12 +316,8 @@ final class AdminConfigSystemController extends AbstractController
                 'template_extension' => $extension,
                 'template_cache_dir' => $cacheDir,
                 'cache_templates' => self::mBool($p, 'cache_templates'),
-                // 'php_processing' is deliberately not written: nothing reads it.
-                // TemplateEngine has no #[InjectConfig] setter for it, and the
-                // only $phpProcessing that reaches the compiler is the method
-                // default (false), so the checkbox this used to persist changed
-                // nothing. ConfigWriter merges over the existing file, so an
-                // already-stored key is left untouched rather than dropped.
+                // 'php_processing' isn't written: nothing reads it. ConfigWriter merges over
+                // the existing file, so a key already stored is left alone.
                 'parse_mode' => $parseMode,
             ],
         ]);
@@ -422,9 +411,8 @@ final class AdminConfigSystemController extends AbstractController
                 'extra_lang_domains' => $extraDomains,
                 'status_bar_min_level' => self::mInt($p, 'status_bar_min_level', 2),
                 'status_bar_level_classes' => $levelClasses,
-                // Preserve keys with no field on this form — a full-file rewrite
-                // would otherwise drop them, silently reverting behaviour (e.g.
-                // losing the Secure-cookie proxy-trust flag on the next save).
+                // Keep keys this form has no field for, such as the Secure-cookie proxy
+                // trust flag.
                 'content_security_policy' => $this->config->getConfigString(
                     'ContentManager', 'content_security_policy', ''
                 ),

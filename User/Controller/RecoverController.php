@@ -113,12 +113,10 @@ final class RecoverController extends AbstractController
 
         $recoveryResult = $this->userService->initiateRecovery($identifier);
         if (!$recoveryResult->isOk()) {
-            // Distinguish "user not found" from genuine failures (e.g. DB error).
-            // Previously the success path 302-redirected while not-found
-            // re-rendered the form (200) — a differential that leaks account
-            // existence. Treat not-found as a NON-LEAKING success: keep the
-            // diagnostic server-side only and fall through to the exact same
-            // generic flash + redirect the success path performs below.
+            // Tell "user not found" apart from real failures, but answer both the same
+            // way: the same generic message and redirect as success, so the response
+            // never reveals whether an account exists. The diagnostic stays on the
+            // server.
             $isNotFound = false;
             foreach ($recoveryResult->diagnostics() as $d) {
                 if ($d instanceof UserNotFoundDiagnostic) {

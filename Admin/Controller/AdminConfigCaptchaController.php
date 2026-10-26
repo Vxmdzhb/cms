@@ -232,7 +232,7 @@ final class AdminConfigCaptchaController extends AbstractController
     private function saveContextDifficulty(array $p): Result
     {
         $full = $this->loadFullCaptchaConfig();
-        // R11 (MED): clamp on write like comment_captcha_difficulty below. The
+        // Clamp on write like comment_captcha_difficulty below. The
         // login/register/recover consumers resolve this via CaptchaType::from(),
         // which THROWS a ValueError (→ forced 500) on an out-of-range int. Left
         // unclamped, a MOD (holds admin.config.captcha) could POST difficulty=99

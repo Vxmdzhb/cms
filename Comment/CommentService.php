@@ -154,7 +154,7 @@ final class CommentService
             /** @var array<string,mixed> $parent */
             $parent = $parentResult->unwrap();
             $ppid = $parent['page_id'] ?? 0;
-            // R10 LOW: mirror the item_id coercion below — under emulate_prepares
+            // Mirror the item_id coercion below — under emulate_prepares
             // =true PDO returns integer columns as numeric strings, so a bare
             // is_int() check would collapse a valid page_id to 0 and reject every
             // reply with 'reply_wrong_page'. Accept a numeric string too.
@@ -164,7 +164,7 @@ final class CommentService
             }
             // A reply must also target the SAME item as its parent — page_id alone
             // does not pin the thread on a multi-item page, so without this an item
-            // reply could attach across items (R3-26). item_id is NULL for
+            // reply could attach across items. item_id is NULL for
             // page-level comments; both sides must match (NULL == NULL).
             $pItem = $parent['item_id'] ?? null;
             $parentItemId = is_int($pItem) ? $pItem : (is_numeric($pItem) ? (int) $pItem : null);
@@ -219,7 +219,7 @@ final class CommentService
         // ── Flood check ───────────────────────────────────────────────
         // Comment moderators / admins are exempt from the post cooldown.
         // The lookup is page-scoped to match the page-scoped auto-mute and mute
-        // check below — the keying is consistent (R3-18).
+        // check below — the keying is consistent.
         $isStaff = $this->gate->can(CommentPermission::ADMIN);
         if (!$isStaff && $this->minimumFloodSecs > 0) {
             $lastResult = $this->repo->lastCommentTime($hexUserId, $floodKey, $pageId);
@@ -397,7 +397,7 @@ final class CommentService
             if (empty($rule['enabled'])) {
                 continue;
             }
-            // R11 (MED): '@' + '=== 1' so a malformed/uncompilable stored pattern
+            // '@' + '=== 1' so a malformed/uncompilable stored pattern
             // (e.g. an admin typing a bare banned phrase with no regex delimiters,
             // or any bad pattern) cannot emit an E_WARNING → forced HTTP 500 on
             // EVERY public comment POST. preg_match returns false on error, which

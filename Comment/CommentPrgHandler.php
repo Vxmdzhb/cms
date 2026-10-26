@@ -7,21 +7,15 @@ namespace AstrX\Comment;
 use AstrX\Session\AbstractPrgHandler;
 
 /**
- * Dedicated PRG namespace for comment forms.
+ * A PRG namespace of its own for comment forms.
  *
- * Uses separate session keys (COMMENT_POST_ / COMMENT_TARGET_) and a separate
- * query key (_cp) so that comment form redirects are never consumed by other
- * page controllers that share the main _prg query key. This solves the bug
- * where pages with their own controller (e.g. UserController) call
- * PrgHandler::pull() on the shared _prg token before CommentController can
- * process it, silently dropping the comment submission.
+ * Separate session keys (COMMENT_POST_ / COMMENT_TARGET_) and a separate
+ * query key (_cp), so a page controller that shares the main _prg key (e.g.
+ * UserController) can't consume a comment's redirect before
+ * CommentController sees it.
  *
- * Behaviour — including the payload GC and __files__ upload scrubbing this
- * class used to lack entirely — now lives in AbstractPrgHandler. Before that,
- * COMMENT_POST_ entries were written and never swept: pruneTargets() only ever
- * touched COMMENT_TARGET_, so every abandoned comment submission stayed in the
- * session blob for the life of the session and grew it towards the MEDIUMBLOB
- * ceiling, taking any uploaded temp files with it.
+ * Everything else, including garbage collection of abandoned payloads and
+ * their uploaded files, lives in AbstractPrgHandler.
  */
 final class CommentPrgHandler extends AbstractPrgHandler
 {

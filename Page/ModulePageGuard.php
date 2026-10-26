@@ -24,7 +24,7 @@ final class ModulePageGuard implements PageGuard
     public function shouldSwapToError(Page $page): bool
     {
         // Case/whitespace-insensitive owner; an owner no installed module
-        // claims is hidden (fail closed) rather than shown open (R4-21).
+        // claims is hidden (fail closed) rather than shown open.
         return !$this->registry->pageOwnerEnabled($page->module);
     }
 }

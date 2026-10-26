@@ -162,14 +162,14 @@ return [
     'WORDING_PROFILE.description'  => 'Visualizza un profilo utente.',
 
 
-    // ---- Selettore tema (fix95) ---------------------------------------------
+    // ---- Selettore tema ---------------------------------------------
     'user.settings.theme'                  => 'Tema',
     'user.settings.theme_desc'             => 'Scegli come appare il sito per te. "Predefinito" significa usa il tema globale del sito.',
     'user.settings.theme_default'          => 'Predefinito (usa il tema del sito)',
     'user.settings.theme_saved'            => 'Preferenza tema salvata.',
     'user.settings.theme_invalid'          => 'Questo tema non è installato.',
 
-    // ---- Chiavi API (fix100) ------------------------------------------------
+    // ---- Chiavi API ------------------------------------------------
     'user.settings.api_keys'                => 'Chiavi API',
     'user.settings.api_keys_desc'           => 'Usa le chiavi API per accedere al sito in modo programmatico. Ogni chiave equivale al tuo account &mdash; tienila segreta. Una chiave mostrata UNA volta alla creazione non può essere recuperata, solo revocata.',
     'user.settings.api_keys_label'          => 'Etichetta',

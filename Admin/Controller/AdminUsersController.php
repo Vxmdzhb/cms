@@ -146,7 +146,7 @@ final class AdminUsersController extends AbstractController
             return;
         }
 
-        // Fix 1.1: explicit user-not-found handling.
+        // Explicit user-not-found handling.
         $targetResult = $this->userRepo->findById($hexId);
         if (!$targetResult->isOk()) {
             $targetResult->drainTo($this->collector);
@@ -170,7 +170,7 @@ final class AdminUsersController extends AbstractController
 
         switch ($action) {
             case 'update':
-                // Fix 1.3: password hashing delegated to UserService.
+                // Password hashing delegated to UserService.
                 $rawPassword = trim(self::mStr($posted, 'password', ''));
                 $hashIt      = self::mBool($posted, 'hash_password');
 
@@ -256,7 +256,7 @@ final class AdminUsersController extends AbstractController
                 break;
 
             case 'force_logout':
-                // R13: evict ALL of the target's live sessions immediately by
+                // Evict ALL of the target's live sessions immediately by
                 // bumping their session epoch — the per-request re-validation then
                 // drops each session on its next request. USER_EDIT_ANY (required
                 // above) gates this; it does not delete or alter the account.
@@ -285,7 +285,7 @@ final class AdminUsersController extends AbstractController
         // on-disk values so a MOD's save can neither disable a captcha (which would
         // open login brute-force / registration spam), permit unverified logins,
         // nor relax the password policy. Same fail-safe-preserve pattern the
-        // login_lockout_* keys already use, and the site_url gate (R9-02).
+        // login_lockout_* keys already use, and the site_url gate.
         $maySetAuthPolicy = $this->gate->can(AdminPermission::CONFIG_SYSTEM);
         $sections = [
             'UserService' => [
@@ -303,15 +303,15 @@ final class AdminUsersController extends AbstractController
                 'case_sensitive_usernames'       => self::mBool($p, 'case_sensitive_usernames'),
                 'minimum_age'                    => max(0, self::mInt($p, 'minimum_age', 0)),
                 'maximum_age'                    => max(0, self::mInt($p, 'maximum_age', 0)),
-                // Fall back to ALWAYS, not ON_X_FAILED: a missing form field or a
-                // missing config key must not silently land on the mode whose
-                // threshold the attacker controls (their own session counter).
+                // Fall back to ALWAYS, not ON_X_FAILED: a missing field or key must never
+                // pick the mode whose threshold the attacker controls (their own session
+                // counter).
                 'login_captcha_type'             => $maySetAuthPolicy
                     ? self::mInt($p, 'login_captcha_type', UserService::CAPTCHA_SHOW_ALWAYS)
                     : $this->config->getConfigInt('UserService', 'login_captcha_type', UserService::CAPTCHA_SHOW_ALWAYS),
                 'login_captcha_attempts'         => max(1, self::mInt($p, 'login_captcha_attempts', 3)),
-                // Brute-force lockout (fix M4) has no form field yet; preserve the
-                // current on-disk values so saving this page never silently drops them.
+                // The brute-force lockout has no form field yet; keep the values on disk so
+                // saving this page doesn't drop them.
                 'login_lockout_threshold'        => max(0, $this->config->getConfigInt('UserService', 'login_lockout_threshold', 10)),
                 'login_lockout_cooldown'         => max(1, $this->config->getConfigInt('UserService', 'login_lockout_cooldown', 900)),
                 'register_captcha_type'          => $maySetAuthPolicy
@@ -353,7 +353,7 @@ final class AdminUsersController extends AbstractController
         return $this->writer->write('User', array_merge(
             $this->loadUserConfig(),
             ['AvatarService' => [
-                // R11 (MED): avatar_dir is system-level (repoints where avatars are
+                // avatar_dir is system-level (repoints where avatars are
                 // written/served); a MOD (admin.config.users) must not relocate it,
                 // so preserve the on-disk value for a non-system actor.
                 'avatar_dir'       => $this->gate->can(AdminPermission::CONFIG_SYSTEM)
@@ -442,7 +442,7 @@ final class AdminUsersController extends AbstractController
             $this->ctx->set('cfg_allow_login_non_verified_users', $this->config->getConfigBool('UserService', 'allow_login_non_verified_users', true));
             $this->ctx->set('cfg_require_email',                  $this->config->getConfigBool('UserService', 'require_email',                  true));
             $this->ctx->set('cfg_require_recovery_email',         $this->config->getConfigBool('UserService', 'require_recovery_email',         true));
-            // Email transactional flags (fix115)
+            // Email transactional flags
             $this->ctx->set('cfg_send_verification_email',        $this->config->getConfigBool('UserService', 'send_verification_email',        true));
             $this->ctx->set('cfg_send_password_reset_email',      $this->config->getConfigBool('UserService', 'send_password_reset_email',      true));
             $this->ctx->set('cfg_site_url',                       $this->config->getConfigString('EmailService','site_url',                     ''));
@@ -510,7 +510,7 @@ final class AdminUsersController extends AbstractController
             if ($k <= 0) { continue; }
             $patRaw = $patterns[$i] ?? '';
             $pattern = trim(is_scalar($patRaw) ? (string)$patRaw : '');
-            // Reject an uncompilable pattern at save (R9): storing a malformed
+            // Reject an uncompilable pattern at save: storing a malformed
             // regex would 500 every subsequent registration / password change when
             // checkRegex runs it. Skip it here so it never reaches disk.
             if ($pattern === '' || @preg_match($pattern, '') === false) { continue; }
@@ -593,7 +593,7 @@ final class AdminUsersController extends AbstractController
             $this->ctx->set('label_allow_login_non_verified_users',$this->t->t('admin.config.field.allow_login_non_verified_users'));
             $this->ctx->set('label_require_email',                 $this->t->t('admin.config.field.require_email_user'));
             $this->ctx->set('label_require_recovery_email',        $this->t->t('admin.config.field.require_recovery_email'));
-            // Email transactional flags (fix115)
+            // Email transactional flags
             $this->ctx->set('label_send_verification_email',       $this->t->t('admin.config.field.send_verification_email'));
             $this->ctx->set('label_send_password_reset_email',     $this->t->t('admin.config.field.send_password_reset_email'));
             $this->ctx->set('label_site_url',                      $this->t->t('admin.config.field.site_url'));

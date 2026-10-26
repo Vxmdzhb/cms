@@ -16,10 +16,9 @@ use AstrX\Kernel\AbstractController;
 use AstrX\Admin\AdminPermission;
 
 /**
- * Admin — Audit log viewer.
+ * Admin: audit log viewer.
  *
- * Read-only display of admin_audit_log, newest first, with basic filtering.
- * Requires ADMIN_ACCESS permission.
+ * Read-only, newest first, with simple filters. Requires ADMIN_ACCESS.
  *
  * GET parameters:
  *   page=N        pagination
@@ -52,7 +51,7 @@ final class AdminAuditLogController extends AbstractController
             return $this->ok();
         }
 
-        // R12: verify the tamper-evident hash chain on every load and surface a
+        // Verify the tamper-evident hash chain on every load and surface a
         // banner. A deleted/edited past entry breaks the chain and is flagged here.
         $chain = $this->audit->verifyChain();
         $this->ctx->set('chain_intact',    $chain['status'] === 'intact');

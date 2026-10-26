@@ -12,33 +12,27 @@ use PDO;
 use AstrX\Result\DiagnosticLevel;
 
 /**
- * Writes immutable, TAMPER-EVIDENT audit log entries for significant admin
- * actions.
+ * Writes tamper-evident audit log entries for significant admin actions.
  *
- * Each entry stores entry_hash = SHA-256(prev_hash ‖ fields) where prev_hash is
- * the previous entry's entry_hash, so editing or deleting a MIDDLE entry breaks
- * the chain there. In addition an ANCHOR (last head hash + a monotonic entry
- * count) is kept in `site_config` and advanced in the SAME transaction as each
- * append: {@see verifyChain()} compares the walked chain against the anchor, so
- * truncating the NEWEST or OLDEST entries — the attack a plain chain misses — is
- * also detected (the count no longer matches). Appends serialize on a
- * `SELECT … FOR UPDATE` of the anchor row inside a transaction, so concurrent
- * admin actions BLOCK rather than fork the chain (and, unlike an advisory lock,
- * this can never fail open).
+ * Each entry stores entry_hash = SHA-256(prev_hash ‖ fields), where prev_hash
+ * is the previous entry's hash, so editing or deleting an entry in the middle
+ * breaks the chain there. An anchor (the latest hash and an entry count) is
+ * kept in `site_config` and advanced in the same transaction as each append,
+ * so {@see verifyChain()} also notices entries cut off at either end. Appends
+ * lock the anchor row (`SELECT … FOR UPDATE`) inside a transaction, so
+ * concurrent admin actions wait instead of forking the chain.
  *
- * Threat model, stated honestly: this gives tamper-EVIDENCE, not prevention. An
- * attacker with unrestricted UPDATE/DELETE on BOTH `admin_audit_log` and the
- * `site_config` anchor could recompute a consistent chain (the hash is unkeyed
- * and both live in the same DB). The complete control is to deny the app's DB
- * role UPDATE/DELETE on `admin_audit_log`; the chain+anchor make any tampering by
- * a lesser attacker (or an accident) detectable, and periodically publishing the
- * head hash in the public warrant canary anchors it out-of-band.
+ * This is tamper evidence, not prevention. Someone with UPDATE/DELETE on both
+ * `admin_audit_log` and the anchor could rebuild a consistent chain (the hash
+ * is unkeyed and both live in the same database). To prevent tampering, deny
+ * the application's database role UPDATE/DELETE on `admin_audit_log`;
+ * publishing the head hash in the warrant canary anchors it outside the
+ * database.
  *
  * Table admin_audit_log: id, user_id, username, action, resource, detail, ip,
- * created_at, prev_hash, entry_hash (created_at is NOT hashed — a TIMESTAMP's
- * read-back depends on the session time zone, which would spuriously break the
- * chain; ordering is preserved by the monotonic id, and edits to the content
- * fields + deletions are fully covered).
+ * created_at, prev_hash, entry_hash. created_at is not hashed: how a
+ * TIMESTAMP reads back depends on the session time zone. The id keeps the
+ * order.
  */
 final class AuditLogger
 {
@@ -198,9 +192,9 @@ final class AuditLogger
         // which the per-row walk alone cannot see.
         [$anchorHead, $anchorCount] = $this->anchor();
         if ($anchorCount !== $checked) {
-            // The count no longer matches: entries were removed (or the anchor
-            // itself was tampered). Report the last surviving chained id (0 if all
-            // gone) so the admin sees where the visible chain stops.
+            // The count doesn't match: entries were removed, or the anchor was tampered
+            // with. Report the last chained id still there (0 if none), so the admin sees
+            // where the visible chain ends.
             return ['status' => 'broken', 'checked' => $checked, 'broken_id' => $lastId];
         }
         if ($checked > 0 && !hash_equals($anchorHead, $lastHash)) {

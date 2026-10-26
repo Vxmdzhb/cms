@@ -7,7 +7,9 @@ use AstrX\Auth\Permission;
 use AstrX\Auth\PermissionId;
 
 /**
- * Permissions owned by this feature. The admin shell and site-wide settings: entering the admin section, site configuration, users, pages, navigation, audit log, panic lockdown and the ban list.
+ * Permissions owned by this feature: the admin section and site-wide
+ * settings (entering the admin area, site configuration, users, pages,
+ * navigation, audit log, panic lockdown and the ban list).
  *
  * The string values are the stable identifiers granted to roles in
  * Auth.config.php (wildcards such as 'admin.*' match them by prefix); never

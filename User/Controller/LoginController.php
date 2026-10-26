@@ -186,7 +186,7 @@ final class LoginController extends AbstractController
         $this->ctx->set('show_captcha',       $showCaptcha);
         $this->ctx->set('captcha_id',         $captchaId);
         $this->ctx->set('captcha_image',      $captchaB64);
-        // Iframe URL for reload-without-page-refresh captcha (fix104).
+        // Iframe URL for reload-without-page-refresh captcha.
         // Templates may use {{captcha_frame_url}} inside <iframe src=...>.
         // Iframe-reloadable captcha. Two paired keys:
         //   captcha_frame_url  — the iframe src (empty when no captcha needed)
@@ -219,20 +219,16 @@ final class LoginController extends AbstractController
         return $this->ok();
     }
 
-    // ── Login-failure counter (session) ───────────────────────────────────────
-    // Kept in the session so it is independent of whether the submitted username
-    // maps to a real account — moving it out of the DB closed an enumeration
-    // oracle and must NOT be undone. The DB `login_attempts` column is still
-    // used separately by UserService for the brute-force lockout.
+    // ── Login failure counter (session) ─────────────────────────────────────
+    // Kept in the session, not the database, so it says nothing about whether the
+    // username exists. (The `login_attempts` column is separate; UserService uses
+    // it for the brute-force lockout.)
     //
-    // It no longer decides whether the login captcha appears, and must not be
-    // made to again: the session is state the VISITOR owns, so an attacker who
-    // drops the cookie arrives with a count of 0 on every request and any
-    // threshold built on it fires exactly never.
-    // UserService::shouldShowLoginCaptcha() therefore ignores the value except
-    // to honour an explicit "never" policy. The counter stays because it is
-    // still a truthful signal for a legitimate user and a hook for a future
-    // proof-of-work escalation.
+    // It doesn't decide whether the login captcha appears, and mustn't: the
+    // visitor owns the session, so an attacker who drops the cookie always counts
+    // 0. UserService::shouldShowLoginCaptcha() only uses it to honour an explicit
+    // "never" policy. The counter stays as an honest signal for real users and a
+    // hook for proof-of-work later.
 
     private function loginFailCount(): int
     {

@@ -257,7 +257,7 @@ final class CommentRepository
     /**
      * UNIX timestamp of the poster's most recent comment ON THIS PAGE, or null.
      * Scoped to $pageId so the flood LOOKUP matches the page-scoped auto-mute and
-     * mute-check (R3-18) — keying is consistent instead of a global lookup that
+     * mute-check — keying is consistent instead of a global lookup that
      * fed a page-scoped penalty.
      *
      * @return Result<?int>
@@ -294,17 +294,13 @@ final class CommentRepository
     {
         try {
             $now = date('Y-m-d H:i:s');
-            // Comment mutes are always page-scoped (they carry a real page_id).
-            // Match ONLY rows for THIS page — never page_id IS NULL — so chat/
-            // global mutes (the shared `mute` table stores those with page_id NULL)
-            // can no longer block commenting site-wide (R3-17). The intended
-            // per-page comment mute is preserved.
-            // Bind :page_id ONLY inside the member branch that references it. A
-            // guest call (hexUserId null) builds SQL that uses :page_id2/:ip but
-            // NOT :page_id, so seeding :page_id unconditionally left it bound-but-
-            // absent → PDO HY093 "Invalid parameter number" on native prepares →
-            // the try/catch returned Result::err and the caller (which only acts
-            // on isOk()) skipped the mute check, i.e. guest mutes failed open.
+            // Comment mutes always belong to a page. Match only this page's rows, never
+            // page_id IS NULL: those are chat or global mutes in the shared `mute` table,
+            // and they must not block commenting everywhere.
+            //
+            // Bind :page_id only in the member branch that uses it. The guest query
+            // doesn't reference it, and an unused bound parameter fails with HY093 under
+            // native prepares, which would make the mute check fail open.
             $conds = []; $params = [':now' => $now];
             if ($hexUserId !== null) {
                 $conds[] = '(user_id = UNHEX(:uid) AND page_id = :page_id)';
@@ -327,7 +323,7 @@ final class CommentRepository
     public function addMute(?string $hexUserId, ?string $packedIp, ?int $pageId, int $durationSecs): Result
     {
         try {
-            // R10 LOW: clamp the horizon (see ChatRepository::addMute) so an
+            // Clamp the horizon (see ChatRepository::addMute) so an
             // absurd duration can't overflow time()+dur into a float and 500 the
             // mute via date()'s TypeError. Cap at 10 years (effectively permanent).
             $expires = date('Y-m-d H:i:s', time() + min(max(0, $durationSecs), 315360000));

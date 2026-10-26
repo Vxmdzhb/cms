@@ -1,22 +1,18 @@
--- Core base schema — the first of the ordered pieces the installer applies on
+-- Core base schema: the first of the ordered pieces the installer applies on
 -- every run (src/setup/schema/NNNN_*.sql plus each installed module's
--- resources/sql/schema/NNNN_*.sql, sorted by file name; see
--- AstrX\Database\SchemaFiles). Webmail's table, pages and nav entries live in
--- the Webmail module's 0005_webmail_base.sql; the folded-in former migrations
--- each follow as their own piece.
+-- resources/sql/schema/NNNN_*.sql, sorted by file name, see
+-- AstrX\Database\SchemaFiles). Webmail's table, pages and nav entries are in
+-- the Webmail module's 0005_webmail_base.sql.
 --
--- NOTE: no `USE <db>;` here on purpose. The installers connect with a DSN already
--- scoped to the configured database (mysql:...;dbname=...), and a hardcoded `USE
--- content_manager` would OVERRIDE that — silently writing into `content_manager`
--- (or aborting if it doesn't exist) whenever the operator chose a different DB name.
--- If you run a piece by hand, select the target DB first: `mysql <db> < 0000_core_base.sql`.
+-- No `USE <db>` here, on purpose: the installers connect with a DSN that
+-- already selects the configured database, and a hardcoded USE would write
+-- into the wrong one. To run a piece by hand, select the database first:
+-- `mysql <db> < 0000_core_base.sql`.
 
--- Force the (connection-default) database to utf8mb4 BEFORE any CREATE TABLE, so
--- every table below inherits it without needing an explicit per-table charset.
--- The `--create-db` installer path already creates the database as utf8mb4, but a
--- hand-created database left on the server's default (e.g. latin1) would otherwise
--- silently reject 4-byte input (emoji, many CJK/scripts) — a data-loss/█-mojibake
--- bug on exactly the international content a Tor CMS carries. Idempotent.
+-- Make the database utf8mb4 before any CREATE TABLE, so every table inherits
+-- it. `--create-db` already creates it that way, but a database created by
+-- hand on a latin1 server would otherwise mangle 4-byte characters (emoji,
+-- many scripts). Idempotent.
 ALTER DATABASE CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 
@@ -79,7 +75,7 @@ CREATE TABLE `keyword`
     `id`      INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `keyword` VARCHAR(64) NOT NULL,
     `i18n`    TINYINT     NOT NULL DEFAULT 0,
-    -- R11: natural key so re-running the schema (setup re-entry runs it in full,
+    -- Natural key so re-running the schema (setup re-entry runs it in full,
     -- unconditionally) can't duplicate seed keywords; paired with INSERT IGNORE
     -- on the seed below. keyword is only ever populated by that seed.
     UNIQUE KEY `uq_keyword` (`keyword`, `i18n`)
@@ -122,7 +118,7 @@ CREATE TABLE `navbar`
 (
     `id`   INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(64) NOT NULL,
-    -- R11: navbar names are unique — only 'public'/'user'/'admin' are ever
+    -- Navbar names are unique — only 'public'/'user'/'admin' are ever
     -- created (no dynamic navbar creation), so this + INSERT IGNORE makes the
     -- seed idempotent when the schema is re-run on setup re-entry.
     UNIQUE KEY `uq_navbar_name` (`name`)
@@ -271,11 +267,7 @@ CREATE TABLE `user`
     `token_type`       TINYINT      NULL,
     `token_used`       TINYINT      NOT NULL DEFAULT 0,
     `token_expires_at` TIMESTAMP    NULL,
-    -- username / email / mailbox are each declared UNIQUE above, which already
-    -- builds a unique B-tree on the column. The plain INDEX that used to sit
-    -- here as well was a second copy of the same tree: extra write cost on every
-    -- INSERT and UPDATE, and never chosen by the planner over the unique one.
-    -- (migrate_zzzz_indexes_and_content_fk.sql drops them where they exist.)
+    -- username, email and mailbox are UNIQUE above, which already indexes them.
     INDEX idx_deleted  (deleted)
 );
 
@@ -618,7 +610,7 @@ VALUES
 
 INSERT IGNORE INTO `navbar` (name) VALUES ('public'), ('user'), ('admin');
 
--- R11: navbar_pin has NO natural UNIQUE key — two pins in one navbar can
+-- navbar_pin has NO natural UNIQUE key — two pins in one navbar can
 -- legitimately share a (navbar_id, sort_order) position (the admin editor's
 -- addPin takes a caller-supplied sort_order, default 0), so a UNIQUE would
 -- regress navbar editing. Instead seed the six pins ONLY when the table is
@@ -635,10 +627,9 @@ SELECT `navbar_id`, `sort_order`, `sort_mode` FROM (
 ) AS `seed`
 WHERE NOT EXISTS (SELECT 1 FROM `navbar_pin`);
 
--- 24 navbar entries total. GUARDED with WHERE NOT EXISTS (like the navbar_pin seed
--- above) so re-applying the schema on an installer re-run can't leak 24 fresh orphan
--- allocator rows each time. On a fresh (empty) table this inserts ids 1..24 exactly
--- as the old bare VALUES did; on re-apply it inserts nothing.
+-- 24 navbar entries. Guarded with WHERE NOT EXISTS (like the navbar_pin seed
+-- above), so re-applying the schema doesn't add orphan ids each time. On an
+-- empty table this inserts ids 1..24.
 INSERT INTO `navbar_entry_ids` (id)
 SELECT NULL FROM (
               SELECT 1 UNION ALL SELECT 2  UNION ALL SELECT 3  UNION ALL SELECT 4
@@ -707,7 +698,5 @@ VALUES (3,'#'),(4,'#');
 -- Captcha test page (remove before production)
 -- ----------------------------------------------------------
 
--- Intentionally NOT seeded (security): 'captcha-test' was an unauthenticated,
--- CSRF-less test endpoint wired to the production captcha table. It is no longer
--- seeded. Run migrate_remove_captcha_test.sql to drop it from an existing DB,
--- and delete src/AstrX/Controller/CaptchaTestController.php.
+-- 'captcha-test' is not seeded: it was an unauthenticated test endpoint. On
+-- an existing database, migrate_remove_captcha_test.sql drops it.

@@ -1,6 +1,6 @@
 -- ---------- migrate_captcha_abuse.sql ----------
 -- ============================================================
--- AstrX migration: captcha abuse policy columns (fix105)
+-- AstrX migration: captcha abuse policy columns
 -- Limits how often a captcha can be reloaded and adds a cooldown.
 -- Safe to re-run.
 -- ============================================================

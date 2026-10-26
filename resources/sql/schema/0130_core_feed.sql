@@ -1,6 +1,6 @@
 -- ---------- migrate_feed.sql ----------
 -- ============================================================
--- AstrX migration: Atom feed page (fix115)
+-- AstrX migration: Atom feed page
 -- Registers the /<locale>/feed.xml endpoint backed by FeedController.
 -- Idempotent.
 -- ============================================================

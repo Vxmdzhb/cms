@@ -140,7 +140,7 @@ final class RegisterController extends AbstractController
             }
         }
 
-        // Fix 7.2: captcha check moved BEFORE consent — captchas are one-shot
+        // Captcha check moved BEFORE consent — captchas are one-shot
         // (deleted on verify), so a consent failure must not consume the
         // captcha and leave the user stuck with "already used" on retry.
         $captchaSubmitted = $captchaId !== '';
@@ -197,12 +197,12 @@ final class RegisterController extends AbstractController
         }
         $newHexId = $registerResult->unwrap();
 
-        // Record which user the claimed code belongs to (audit backfill).
+        // Record which user the claimed code went to.
         if ($requireInvite && $inviteCode !== '') {
             $this->inviteRepo->attributeTo($inviteCode, $newHexId)->drainTo($this->collector);
         }
 
-        // --- Email verification (fix114) ---
+        // --- Email verification ---
         //
         // Decision tree:
         //   (a) Email will be sent: user provided an address AND the admin
@@ -303,7 +303,6 @@ final class RegisterController extends AbstractController
         $this->ctx->set('captcha_frame_url', $captchaFrameUrl);
         // Reload button (iframe) is opt-in; off = a plain single-image captcha.
         $this->ctx->set('has_captcha_frame', $captchaFrameUrl !== '' && $this->captchaService->reloadEnabled());
-        // fix113 set this; lost during fix114's email-integration patch — re-added in fix117.
         // Captcha translation domain holds 'captcha.reload'. Without
         // this loadDomain call, t() emits a Missing-translation diagnostic
         // (the fallback still displays correctly, just noise in logs).

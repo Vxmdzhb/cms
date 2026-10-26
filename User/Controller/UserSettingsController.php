@@ -96,22 +96,13 @@ final class UserSettingsController extends AbstractController
 
         $prgToken = $this->request->query()->get($this->prg->tokenQueryKey());
         if (is_string($prgToken) && $prgToken !== '') {
-            // PRG: the token was set by middleware on the POST. We pull the
-            // stored form data, process it, and then REDIRECT to the clean
-            // URL (without the token query parameter). This is the canonical
-            // Post-Redirect-Get pattern.
+            // PRG: the POST left a token. Pull the stored form data, process it, then
+            // redirect to the clean URL without the token.
             //
-            // Why redirect even on F5 / repeated visits to the same URL?
-            //
-            //   - The token is single-use. After we pull it, it's gone.
-            //   - If the user presses F5, the browser re-requests the same
-            //     URL with the same token. Without a redirect, processSubmission
-            //     runs again with an empty pulled array, which makes the CSRF
-            //     check fail with form name "settings_" (empty action). That's
-            //     the bug you saw.
-            //   - Some context that was built before processSubmission ran is
-            //     now stale (e.g. theme picker showing the old theme because the
-            //     session was just updated). A clean redirect re-builds it.
+            // Redirect even on a reload of the same URL: the token is single-use, so
+            // processing it again would find nothing and fail the CSRF check, and some of
+            // the page was built before processSubmission() ran (the theme picker would
+            // show the old theme). The redirect rebuilds everything.
             $this->processSubmission($prgToken);
 
             $pageUrl = $this->urlGen->toPage($this->t->t('WORDING_SETTINGS', fallback: 'WORDING_SETTINGS'));
@@ -171,11 +162,9 @@ final class UserSettingsController extends AbstractController
                 break;
 
             case 'change_password':
-                // Only skip the current-password check for a FRESH, session-bound,
-                // one-shot recovery grant (set when the user arrived via a valid
-                // recovery link this session) — NOT for any historically-used
-                // recovery token, which previously left the check bypassable
-                // indefinitely for a hijacked session (F-05).
+                // Skip the current-password check only for a fresh, one-shot recovery grant
+                // tied to this session (set when the user arrived through a valid recovery
+                // link), never for a recovery token used at some point in the past.
                 $resetUntil  = $_SESSION['_pw_reset_until'] ?? 0;
                 $tokenUnlock = is_int($resetUntil) && $resetUntil > time();
                 $result = $this->userService->changePassword(
@@ -346,9 +335,9 @@ final class UserSettingsController extends AbstractController
 
         $hasAvatar       = $this->session->hasAvatar();
         $avatarUrl       = $this->urlGen->toPage('avatar') . '?uid=' . $hexId;
-        // Hide the old-password field only for a fresh, session-bound recovery
-        // unlock — must match the change_password enforcement (F-05); otherwise a
-        // stale used token would hide the field while the backend still demands it.
+        // Hide the old-password field only for a fresh recovery grant tied to this
+        // session, matching the check in change_password; otherwise the field could
+        // be hidden while the server still asks for it.
         $resetUntil      = $_SESSION['_pw_reset_until'] ?? 0;
         $tokenUnlock     = is_int($resetUntil) && $resetUntil > time();
         $isVerified      = $this->session->isVerified();
@@ -367,7 +356,7 @@ final class UserSettingsController extends AbstractController
         $this->ctx->set('show_avatar',       true);
         $this->ctx->set('max_avatar_mb',     1); // TODO: from AvatarService config
 
-        // ── API keys (fix100) ───────────────────────────────────────────
+        // ── API keys ───────────────────────────────────────────
         // List the user's current keys for the management UI. The raw key
         // is NEVER stored — keys here are "id, label, created, last_used,
         // expires, revoked" only. The raw value of a JUST-CREATED key (if

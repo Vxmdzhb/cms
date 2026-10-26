@@ -33,18 +33,16 @@ use AstrX\User\Diagnostic\UserNotFoundDiagnostic;
 /**
  * User business logic.
  *
- * All methods return Result<T>. Callers drain diagnostics to their collector
- * and check isOk() before trusting the returned value.
+ * Every method returns Result<T>. Callers drain diagnostics into their
+ * collector and check isOk() before trusting the value.
  *
- * Password hashing: password_hash(PASSWORD_ARGON2ID) / password_verify().
- * User IDs: 32-char lowercase hex, generated with bin2hex(random_bytes(16)).
- * Tokens: 32-char hex raw token, stored as password_hash() in the DB.
+ * Passwords: password_hash(PASSWORD_ARGON2ID) / password_verify().
+ * User ids: 32-char lowercase hex from bin2hex(random_bytes(16)).
+ * Tokens: a 32-char hex token, stored as a password_hash().
  *
- * Email sending is intentionally NOT handled here — this service returns
- * token data and the calling controller is responsible for passing it to a
- * mailer. This decouples UserService from PHPMailer and makes it testable.
- *
- * Captcha policy constants match the old User class values for compatibility.
+ * Sending email isn't done here: the service returns the token data and the
+ * controller hands it to the mailer, which keeps this class testable on its
+ * own.
  */
 final class UserService
 {
@@ -165,9 +163,9 @@ final class UserService
     #[InjectConfig('require_recovery_email')]
     public function setRequireRecoveryEmail(bool $v): void { $this->requireRecoveryEmail = $v; }
 
-    /** Whether to send a verification email after registration (fix114). */
+    /** Whether to send a verification email after registration. */
     private bool $sendVerificationEmail = true;
-    /** Whether the password-recovery flow actually sends an email (fix114). */
+    /** Whether the password-recovery flow actually sends an email. */
     private bool $sendPasswordResetEmail = true;
 
     #[InjectConfig('send_verification_email')]
@@ -218,7 +216,7 @@ final class UserService
     public function __construct(
         private readonly UserRepository $repo,
         private readonly AvatarService  $avatarService,
-        /** Only used to keep the ACTING session alive across an eviction — see evictOtherSessions(). */
+        /** Only used to keep the acting session alive during an eviction; see evictOtherSessions(). */
         private readonly UserSession    $session,
         /**
          * Wraps the TOTP secret before it reaches the database — see
@@ -292,10 +290,9 @@ final class UserService
     }
 
     /**
-     * Persist the highest TOTP step accepted for this user (replay prevention).
-     * Returns whether the write succeeded — the challenge grants the session only
-     * when it did, so a failed write can't silently leave the step un-advanced and
-     * a just-used code replayable.
+     * Persist the highest TOTP step accepted for this user (replay protection).
+     * Returns whether the write worked: the challenge only grants the session
+     * when it did, so a used code can never be accepted twice.
      */
     public function setTotpLastStep(string $hexId, int $step): bool
     {
@@ -345,7 +342,7 @@ final class UserService
     // derived from the install's server secret, which does not live in the
     // database.
 
-    /** Envelope marker + version, so plaintext rows from before this change are recognisable. */
+    /** Envelope marker and version, so older plaintext rows can be recognised. */
     private const string TOTP_ENVELOPE_PREFIX = 'enc:v1:';
 
     /**
@@ -556,33 +553,24 @@ final class UserService
     }
 
     /**
-     * Decide whether the LOGIN form needs a captcha.
+     * Decide whether the login form needs a captcha.
      *
-     * On the login form there are exactly TWO honest answers, always and never,
-     * and $failCount does not choose between them.
+     * There are two honest answers, always and never, and $failCount doesn't
+     * choose between them.
      *
-     * shouldShowCaptcha('login', $username) does a DB lookup keyed on the
-     * username, which leaks account existence: real users start showing a
-     * captcha after N fails while unknown usernames never do. That oracle was
-     * closed by moving the counter into the session — but the session is state
-     * the CLIENT owns. Dropping the cookie resets it, so an attacker scripting
-     * the login form arrives with $failCount = 0 on every request and
-     * CAPTCHA_SHOW_ON_X_FAILED never fires once. AstrX has no IP to rate-limit
-     * (every request is a Tor exit) and no JavaScript, so the per-account
-     * 10-in-900s lockout is the only other brake: it does nothing against
-     * spraying one guess across many accounts, and nothing at all against the
-     * registration of throwaway accounts.
+     * Keying the decision on the username would reveal which accounts exist
+     * (only real ones would start showing a captcha). Keying it on a session
+     * counter doesn't work either: the client owns the session, and an attacker
+     * who drops the cookie always counts 0. AstrX has no IP to rate-limit (every
+     * request comes from a Tor exit) and no JavaScript, and the per-account
+     * lockout does nothing against one guess spread over many accounts.
      *
-     * So the threshold mode is honoured as ALWAYS here. Operators who accept the
-     * risk still have an explicit off switch — set
-     * UserService.login_captcha_type to CAPTCHA_SHOW_NEVER (1). That is a
-     * decision someone has to write down, not an emergent property of a counter
-     * the attacker controls.
+     * So the threshold mode is treated as ALWAYS. Operators who accept the risk
+     * can turn the captcha off explicitly with UserService.login_captcha_type =
+     * CAPTCHA_SHOW_NEVER (1).
      *
-     * $failCount is retained (and still counted by LoginController) because it
-     * remains meaningful for a legitimate user's UI and for future
-     * proof-of-work escalation; it just cannot be the thing that decides
-     * whether the brake exists at all.
+     * $failCount is kept because it still means something for a real user's
+     * interface and for proof-of-work later.
      *
      * @return Result<bool>
      */
@@ -683,7 +671,7 @@ final class UserService
 
         // Closed accounts (keep_visible / keep_suspended / …) must not log in even
         // though keep_visible keeps `deleted = 0` for content visibility — the
-        // `deleted = 0` filter alone doesn't catch it (R3-15). NONE is the only
+        // `deleted = 0` filter alone doesn't catch it. NONE is the only
         // login-allowing DeletionMode.
         $deletionMode = is_scalar($row['deletion_mode'] ?? null) ? (string) $row['deletion_mode'] : '';
         if ($deletionMode !== '' && $deletionMode !== 'none') {
@@ -707,16 +695,13 @@ final class UserService
         $this->repo->setLockout($hexId, null);        // FIX M4: clear any lockout
         $this->repo->updateLastAccess($hexId);
 
-        // FIX (remember-me): regenerate the session ID FIRST — the old order set
-        // the cookie to a session id that session_regenerate_id(true) destroyed
-        // one line later. Then write the cookie carrying the NEW id, using the
-        // array-options form of setcookie so we can pin SameSite.
+        // Regenerate the session id first, then set the remember-me cookie with the
+        // new id (the array form of setcookie, so SameSite can be pinned).
         session_regenerate_id(true);
 
         if ($rememberMe && $this->rememberMeTime > 0) {
-            // Persist the remember-me expiry so a later session-ID regeneration
-            // re-issues the cookie with THIS expiry rather than a session-lifetime
-            // one (otherwise the next request's regen silently reverts remember-me).
+            // Keep the remember-me expiry in the session, so later id regenerations
+            // reissue the cookie with it instead of turning it into a session cookie.
             $_SESSION['_remember_until'] = time() + $this->rememberMeTime;
             $params = session_get_cookie_params();
             setcookie(
@@ -844,7 +829,7 @@ final class UserService
             $birth     = sprintf('%04d-%02d-%02d', $year, $month, $day);
             // minimum_age / maximum_age are in YEARS. Use an EXACT calendar-year
             // diff (not seconds / 365.25) so a registrant exactly on their birthday
-            // isn't rejected as underage by averaged-year rounding (R3-21).
+            // isn't rejected as underage by averaged-year rounding.
             $birthDt  = date_create($birth);
             $nowDt    = date_create('today');
             $ageYears = ($birthDt !== false && $nowDt !== false)
@@ -977,11 +962,10 @@ final class UserService
     }
 
     /**
-     * Build a UserSession::login()-ready row for a user whose identity was just
-     * proven out-of-band (e.g. a verified single-use recovery token). Mirrors the
-     * shape returned by login() and carries NO password. Used to authenticate a
-     * logged-out user who clicked a valid recovery link so they can set a new
-     * password (see UserController's token branch).
+     * A UserSession::login()-ready row for a user whose identity was just proven
+     * another way (a valid single-use recovery token). Same shape as login(), no
+     * password. Lets a logged-out user who followed a valid recovery link set a
+     * new password (see UserController's token branch).
      *
      * @return Result<array{id:string,username:string,display_name:string,type:int,verified:bool,avatar:bool,mailbox:string,theme:string}>
      */
@@ -1075,24 +1059,14 @@ final class UserService
     }
 
     /**
-     * Invalidate every OTHER live session of this account, keeping the one that
-     * performed the change (if any) signed in.
+     * Invalidate every other live session of this account, keeping the one that
+     * made the change (if any) signed in.
      *
-     * Called after a password change. Changing a password is the single most
-     * common thing a user does BECAUSE they think someone else is in their
-     * account — and until now it did nothing to that someone else:
-     * updatePassword() is a bare `UPDATE user SET password`, so the attacker's
-     * session cookie kept working exactly as before. Same for the recovery-token
-     * reset path, which is the flow a user reaches precisely when they have lost
-     * control of the credential.
-     *
-     * bumpSessionEpoch() + ContentManager's per-request epoch re-validation
-     * (R13) is the existing eviction mechanism; only the admin force-logout
-     * button was calling it. Re-adopting the new epoch for the acting session
-     * afterwards is what keeps the user who just changed their own password from
-     * being logged out along with the attacker. The recovery path has no session
-     * (RecoverController runs logged-out), so nothing is re-adopted there and
-     * every old session dies — which is the point.
+     * Called after a password change, which is what people do when they think
+     * someone else is in their account, and after a reset through a recovery
+     * token. Bumping the epoch drops every old session on its next request;
+     * re-adopting the new epoch keeps the user who made the change logged in.
+     * The recovery path runs logged out, so there every session ends.
      *
      * @param Result<bool> $passthrough returned unchanged on success
      * @return Result<bool>
@@ -1400,10 +1374,11 @@ final class UserService
     }
 
     /**
-     * Apply a regex filter array. Returns the first error message on failure
-     * or null if all checks pass. Mirrors the old checkRegexFilter() function.
+     * Apply a list of regex rules. Returns the first error message, or null if
+     * every check passes.
+     *
+     * @param array<int,array<string,mixed>> $rules
      */
-    /** @param array<int,array<string,mixed>> $rules */
     private function checkRegex(array $rules, string $value): ?string
     {
         ksort($rules);

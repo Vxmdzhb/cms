@@ -171,9 +171,9 @@ final class UserRepository
     }
 
     /**
-     * Invalidate ALL of a user's live sessions (R13 force-logout / evict-
-     * everywhere): bumping the epoch makes the per-request re-validation drop
-     * every session that adopted the old value.
+     * Invalidate every live session of a user ("log out everywhere"): bumping the
+     * epoch makes the per-request check drop every session that adopted the old
+     * value.
      *
      * @return Result<bool>
      */
@@ -337,18 +337,17 @@ final class UserRepository
     }
 
     /**
-     * Atomically consume ONE TOTP recovery code via compare-and-swap: rewrite the
-     * stored recovery JSON from :old to :new ONLY while it still equals :old, and
-     * report whether THIS call won the swap (rowCount === 1). The /login-2fa
-     * challenge reads the list, removes the matched code in PHP, then calls this —
-     * two concurrent challenges that each matched a code race HERE: the first swap
-     * sees :old and wins; the second's :old no longer matches (0 rows) and is
-     * refused, so a code can't be double-spent, nor can an already-removed one be
-     * resurrected by a lost update. This is the atomic single-use idiom already
-     * used by markTokenUsed()/setTotpLastStep(); the blind SET in setTotp() left the
-     * consume path (the one single-use consumer NOT hardened in R22) racy.
-     * (`totp_recovery` is TEXT, written only by json_encode here and in setTotp(),
-     * so the :old string compare is byte-exact.)
+     * Consume one TOTP recovery code, atomically: rewrite the stored recovery
+     * JSON from :old to :new only if it still equals :old, and report whether
+     * this call won (rowCount === 1).
+     *
+     * The 2FA challenge reads the list, removes the matched code in PHP, then
+     * calls this. Two concurrent challenges that matched a code race here: the
+     * first wins, the second no longer matches :old and is refused. So a code
+     * can't be used twice, and a removed one can't come back through a lost
+     * update. Same idiom as markTokenUsed() and setTotpLastStep().
+     * (`totp_recovery` is TEXT written only by json_encode, here and in setTotp(),
+     * so comparing the strings is exact.)
      *
      * @return Result<bool>
      */
@@ -428,11 +427,9 @@ final class UserRepository
             ? 'UPDATE `user` SET `login_attempts` = `login_attempts` + :d WHERE `id` = UNHEX(:id)'
             : 'UPDATE `user` SET `login_attempts` = 0 WHERE `id` = UNHEX(:id)';
 
-        // The reset branch's SQL has no :d placeholder; binding it anyway throws
-        // HY093 under native prepares (the shipped emulate_prepares=false), which
-        // exec() swallows → the reset silently no-ops so login_attempts only ever
-        // grows, progressively locking out legitimate users (R10). Bind :d only
-        // when the SQL actually uses it.
+        // The reset branch has no :d placeholder, and binding it anyway fails with
+        // HY093 under native prepares, so the reset would never happen and lockouts
+        // would only ever grow. Bind :d only when the SQL uses it.
         $params = $delta >= 0 ? [':d' => abs($delta), ':id' => $hexId] : [':id' => $hexId];
         return $this->exec($sql, $params);
     }
@@ -563,13 +560,11 @@ final class UserRepository
         );
     }
 
-    /** @return Result<bool> */
     /**
-     * Atomically consume a single-use token: flips `token_used` 0→1 and reports
-     * whether THIS call won the flip (rowCount === 1). A concurrent double-click,
-     * a replay of an already-used token, or a silently-failed UPDATE yields
-     * ok(false) / err, so verifyToken() can reject — closing the read-then-write
-     * TOCTOU and the "UPDATE failed → token stays replayable" window.
+     * Consume a single-use token, atomically: flip `token_used` from 0 to 1 and
+     * report whether this call won (rowCount === 1). A double click, a replayed
+     * token or a failed UPDATE gives ok(false) or an error, so verifyToken() can
+     * reject it. No gap between reading and writing.
      *
      * @return Result<bool>
      */
@@ -703,13 +698,11 @@ final class UserRepository
     // -------------------------------------------------------------------------
 
     /**
-     * Full delete — physically remove the user row.
-     * The `comment.user_id` FK is ON DELETE SET NULL, so all comments from this
-     * user will have user_id set to NULL by the database. Thread structure is
-     * preserved but authorship is permanently lost.
+     * Full delete: remove the user row.
      *
-     * For hard_redact (where comments are reassigned to the ghost account
-     * BEFORE this call), call reassignCommentsToGhost() first.
+     * `comment.user_id` is ON DELETE SET NULL, so the user's comments lose their
+     * author but threads stay intact. For hard_redact, call
+     * reassignCommentsToGhost() first.
      *
      * @return Result<bool>
      */
@@ -722,21 +715,19 @@ final class UserRepository
     }
 
     /**
-     * Hard redact — wipe all PII and mark the row as a tombstone.
-     * The username is replaced with a collision-safe placeholder that frees
-     * the original username for re-registration.
+     * Hard redact: wipe all personal data and leave a tombstone row.
      *
-     * Call reassignCommentsToGhost() BEFORE this to preserve thread structure.
+     * The username is replaced with a unique placeholder, which frees the
+     * original name for someone else. Call reassignCommentsToGhost() first to
+     * keep threads intact.
      *
      * @return Result<bool>
      */
     public function hardRedact(string $hexId): Result
     {
-        // The tombstone username must be unique but NOT re-registerable. The
-        // \x00 (null byte) prefix is illegal in any username, so the placeholder
-        // itself can never be registered/impersonated, while the user's ORIGINAL
-        // username (overwritten here) is freed for re-use. (Previously the raw
-        // "deleted_<id>" string was a fully valid, registerable username.)
+        // The tombstone name must be unique and impossible to register. The NUL
+        // prefix is illegal in usernames, so nobody can claim or impersonate it,
+        // while the original username is freed.
         $tombstone = "\x00deleted_" . $hexId;
         return $this->exec(
             'UPDATE `user`

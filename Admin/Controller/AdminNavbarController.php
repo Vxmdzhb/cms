@@ -144,7 +144,7 @@ final class AdminNavbarController extends AbstractController
         $this->ctx->set('prg_id',         $prgId);
         $this->ctx->set('active_navbar',  $activeNavbar);
         $this->ctx->set('active_pin',     $activePin);
-        // Edit state is now inline per-row; top-level forms no longer needed
+        // Editing happens inline, per row.
         $this->ctx->set('has_edit_pin',   false);
         $this->ctx->set('has_edit_entry', false);
         $this->ctx->set('available_pages', $pages);
@@ -247,7 +247,7 @@ final class AdminNavbarController extends AbstractController
                 $active    = self::mBool($posted, 'active') ? 1 : 0;
                 $i18n      = self::mBool($posted, 'i18n')   ? 1 : 0;
                 if ($name === '') {
-                    // Fix 4.4: explicit feedback on missing required field.
+                    // Explicit feedback on missing required field.
                     $this->flash->set('error', $this->t->t('admin.navbar.name_required'));
                     break;
                 }
@@ -308,7 +308,7 @@ final class AdminNavbarController extends AbstractController
             /** @var list<array<string,mixed>> $rows */
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            // Fix 4.5: also surface to user via flash so it appears in the UI.
+            // Also surface to user via flash so it appears in the UI.
             $this->emitDiag($e);
             $this->flash->set('error', $this->t->t('admin.db_error'));
             return [];
@@ -496,7 +496,7 @@ final class AdminNavbarController extends AbstractController
             }
             $this->pdo->commit();
         } catch (\PDOException $e) {
-            // Fix 4.2: guard rollBack with inTransaction check —
+            // Guard rollBack with inTransaction check —
             // if beginTransaction() itself failed, calling rollBack throws.
             if ($this->pdo->inTransaction()) { $this->pdo->rollBack(); }
             $this->emitDiag($e);
@@ -506,7 +506,7 @@ final class AdminNavbarController extends AbstractController
     private function updateEntry(int $id, string $name, int $i18n, string $type,
         string $url, int $pageId, int $sortOrder, int $active): void
     {
-        // Fix 4.1: wrap in transaction — type switches between internal/external
+        // Wrap in transaction — type switches between internal/external
         // require coordinated DELETE+INSERT across two subtype tables.
         try {
             $this->pdo->beginTransaction();
@@ -547,7 +547,7 @@ final class AdminNavbarController extends AbstractController
             $this->pdo->prepare('UPDATE navbar_entry SET active = 1 - active WHERE id = :id')
                 ->execute([':id' => $id]);
         } catch (\PDOException $e) {
-            // Fix 4.3: emit diagnostic instead of silent swallow.
+            // Emit diagnostic instead of silent swallow.
             $this->emitDiag($e);
         }
     }
