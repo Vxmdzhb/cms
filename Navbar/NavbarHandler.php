@@ -26,7 +26,9 @@ use PDO;
  * followed by an underscore (e.g. current `chat_settings` / `board_mod`
  * highlights the `chat` / `board` entry). This keeps a section's own top-level
  * navbar entry lit while the visitor is anywhere inside that section, without
- * having to nest every subpage in the page-closure tree.
+ * having to nest every subpage in the page-closure tree. A module can also put
+ * one of its pages under another section's entry (manifest `nav_section`: the
+ * torrent search page lights Search).
  */
 final class NavbarHandler
 {
@@ -51,6 +53,7 @@ final class NavbarHandler
         }
 
         $ancestorIds = array_column($pageAncestors, 'id');
+        $section     = $this->registry->navSection($currentFileName);
         $pins        = $this->groupAndSortByPin($rows);
 
         // Drop links pointing at a disabled module's pages, so turning a module
@@ -65,7 +68,7 @@ final class NavbarHandler
                 if ($this->pointsAtDisabledModule($row, $disabledPageIds)) {
                     continue;
                 }
-                $entries[] = $this->buildEntry($row, $ancestorIds, $currentFileName);
+                $entries[] = $this->buildEntry($row, $ancestorIds, $currentFileName, $section);
             }
         }
 
@@ -218,9 +221,10 @@ final class NavbarHandler
      * @param  array<string,mixed> $row
      * @param  list<int>           $ancestorIds
      * @param  string              $currentFileName
+     * @param  string              $section the entry file_name a module put the current page under, or ''
      * @return array{name:string,url:string,highlight:bool}
      */
-    private function buildEntry(array $row, array $ancestorIds, string $currentFileName): array
+    private function buildEntry(array $row, array $ancestorIds, string $currentFileName, string $section = ''): array
     {
         $name = $this->resolveName($row);
 
@@ -239,7 +243,7 @@ final class NavbarHandler
             // underscore stops `board` matching an unrelated `boardgame`.
             if (!$highlight && $currentFileName !== '') {
                 $entryFile = is_scalar($row['page_file_name'] ?? null) ? (string) $row['page_file_name'] : '';
-                if ($entryFile !== '' && str_starts_with($currentFileName, $entryFile . '_')) {
+                if ($entryFile !== '' && (str_starts_with($currentFileName, $entryFile . '_') || $entryFile === $section)) {
                     $highlight = true;
                 }
             }
