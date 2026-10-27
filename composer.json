@@ -1,6 +1,7 @@
 {
     "name": "astrx/cms",
     "description": "AstrX CMS core: accounts, admin panel, pages, navigation, themes, comments, news, invites and data retention",
+    "license": "LicenseRef-DoWhatever",
     "type": "library",
     "keywords": [
         "astrx",
