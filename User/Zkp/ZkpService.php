@@ -93,6 +93,8 @@ final class ZkpService
     /** Use the existing form's PRG, CSRF and captcha; only add the alternative. */
     public function present(TemplateVars $ctx, Translator $t, string $action): void
     {
+        // AstrX resolves partial tags through the context, not literal filenames.
+        $ctx->set('zkp_auth', 'partials/zkp_auth');
         $ctx->set('zkp_available', false);
         $origin = $this->origin();
         if ($origin === null || !in_array($action, ['register', 'login', 'enroll'], true)) { return; }
