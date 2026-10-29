@@ -1,4 +1,26 @@
 <h2>{{settings_heading}}</h2>
+{{#zkp_available}}
+<h3>{{zkp_settings}}</h3>
+<p>{{zkp_settings_hint}}</p>
+<p><code>{{zkp_current_key}}</code></p>
+<form method="POST">
+  <input type="hidden" name="prg_id" value="{{&prg.enroll_zkp}}">
+  <input type="hidden" name="_csrf" value="{{&csrf.enroll_zkp}}">
+  <input type="hidden" name="action" value="enroll_zkp">
+  <p><code>python3 zkp_client.py prove --key blackhost.key --action enroll</code></p>
+  <label>{{zkp_challenge_label}}<br><textarea readonly rows="5" cols="64" spellcheck="false">{{zkp_challenge}}</textarea></label><br>
+  <label>{{zkp_proof_label}}<br><textarea name="zkp_proof" rows="5" cols="64" maxlength="4096" spellcheck="false"></textarea></label><br>
+  <label>{{zkp_current_password}} <input type="password" name="current_password" autocomplete="current-password"></label>
+  <input type="submit" class="input" value="{{zkp_save}}">
+</form>
+<form method="POST">
+  <input type="hidden" name="prg_id" value="{{&prg.revoke_zkp}}">
+  <input type="hidden" name="_csrf" value="{{&csrf.revoke_zkp}}">
+  <input type="hidden" name="action" value="revoke_zkp">
+  <label>{{zkp_current_password}} <input type="password" name="current_password" autocomplete="current-password"></label>
+  <input type="submit" class="input" value="{{zkp_revoke}}">
+</form>
+{{/zkp_available}}
 <hr>
 {{#show_avatar}}
 <h3>{{settings_avatar}}</h3>

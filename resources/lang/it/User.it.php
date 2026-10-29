@@ -8,6 +8,18 @@ declare(strict_types=1);
  * Le chiavi .title / .description evitano i notice MissingTranslation.
  */
 return [
+    'user.zkp.method' => 'Metodo di accesso',
+    'user.zkp.settings' => 'Chiave locale di accesso',
+    'user.zkp.settings_hint' => 'Per aggiungere o sostituire una chiave, dimostra di possedere la nuova chiave e inserisci la password attuale. Anche la rimozione richiede una password valida. La modifica termina tutte le sessioni. Per un account con sola chiave, conserva una copia; se il recupero via email è configurato, recupera una password prima di sostituire una chiave persa.',
+    'user.zkp.current_password' => 'Password attuale dell’account',
+    'user.zkp.save' => 'Salva la chiave ed esci',
+    'user.zkp.revoke' => 'Rimuovi la chiave ed esci',
+    'user.zkp.password' => 'Password',
+    'user.zkp.key' => 'Chiave locale (prova di Schnorr)',
+    'user.zkp.instructions' => 'Per usare una chiave locale, lascia vuoti i campi password. Copia questa richiesta nel client locale, controlla account e sito mostrati, poi incolla la prova qui sotto. La richiesta scade dopo cinque minuti. Conserva la chiave privata sul tuo computer.',
+    'user.zkp.challenge_label' => 'Richiesta da copiare',
+    'user.zkp.proof_label' => 'Prova prodotta dal client locale',
+    'user.zkp.mail_notice' => 'Questo metodo non accede alla webmail basata su password. Un nuovo account con sola chiave non ha una password per la casella. Il recupero via email, se abilitato, resta un altro modo per accedere.',
     // -------------------------------------------------------------------------
     // Meta pagina — titolo e descrizione
     // -------------------------------------------------------------------------

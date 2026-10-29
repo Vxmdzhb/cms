@@ -16,6 +16,7 @@ use AstrX\Session\PrgHandler;
 use AstrX\Template\TemplateVars;
 use AstrX\User\UserService;
 use AstrX\User\UserSession;
+use AstrX\User\Zkp\ZkpService;
 use AstrX\Kernel\AbstractController;
 
 /**
@@ -41,6 +42,7 @@ final class LoginController extends AbstractController
         private readonly UrlGenerator          $urlGen,
         private readonly Translator            $t,
         private readonly LoginNotifier         $logins,
+        private readonly ZkpService            $zkp,
     ) {
         parent::__construct($collector);
     }
@@ -102,7 +104,15 @@ final class LoginController extends AbstractController
         }
 
         // Login
-        $loginResult = $this->userService->login($username, $password, $rememberMe);
+        $keyLogin = self::mStr($posted, 'auth_method', 'password') === 'zkp';
+        if ($keyLogin) {
+            $proof = $this->zkp->verify('login', $username, self::mStr($posted, 'zkp_proof', ''));
+            $loginResult = $proof->isOk()
+                ? $this->userService->loginWithPublicKey($username, $proof->unwrap(), $rememberMe)
+                : Result::err(null, $proof->diagnostics());
+        } else {
+            $loginResult = $this->userService->login($username, $password, $rememberMe);
+        }
         if (!$loginResult->isOk()) {
             $loginResult->drainTo($this->collector);
             // Count EVERY failed attempt (independent of whether the username
@@ -119,6 +129,7 @@ final class LoginController extends AbstractController
 
         /** @var array{id:string,username:string,display_name:string,type:int,verified:bool|int,avatar:bool|int,mailbox?:string,password?:string} $userData */
         $userData = $loginResult->unwrap();
+        if ($keyLogin) { $this->session->forgetSecrets(); }
 
         // ── Second factor gate ────────────────────────────────────────────────
         // Password verified. If this account has TOTP on, DO NOT grant the session
@@ -136,7 +147,7 @@ final class LoginController extends AbstractController
         }
         if ($factor->unwrap()) {
             unset($userData['password']); // never stash the hash in the session
-            $this->logins->passwordAccepted($password, secondFactorPending: true);
+            if (!$keyLogin) { $this->logins->passwordAccepted($password, secondFactorPending: true); }
             $_SESSION['astrx_pending_2fa']      = $uid;
             $_SESSION['astrx_pending_2fa_data'] = $userData;
             $_SESSION['astrx_pending_2fa_ts']   = time();
@@ -148,7 +159,7 @@ final class LoginController extends AbstractController
         $this->session->login($userData);
         // Modules that need the password (webmail, for a local IMAP server)
         // keep what they need — in the AES-encrypted session.
-        $this->logins->passwordAccepted($password, secondFactorPending: false);
+        if (!$keyLogin) { $this->logins->passwordAccepted($password, secondFactorPending: false); }
 
         Response::redirect($this->urlGen->toPage($this->t->t('WORDING_USER_HOME')))
             ->send()->drainTo($this->collector);
@@ -158,6 +169,7 @@ final class LoginController extends AbstractController
     /** @return Result<mixed> */
     private function renderForm(string $usernameValue = '', bool $showCaptcha = false): Result
     {
+        $this->zkp->present($this->ctx, $this->t, 'login');
         $csrfToken    = $this->csrf->generate(self::FORM);
         $pageUrl      = $this->request->uri()->path();
         $prgId        = $this->prg->createId($pageUrl);

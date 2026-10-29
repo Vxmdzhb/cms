@@ -242,8 +242,16 @@ final class UserRepository
         ?string $email,
         ?string $displayName,
         ?string $birth,
+        ?string $verifiedPublicKey = null,
     ): Result {
+        $ownsTransaction = false;
         try {
+            if ($verifiedPublicKey !== null) {
+                if ($this->pdo->inTransaction() || !$this->pdo->beginTransaction()) {
+                    throw new PDOException('Key registration requires its own transaction');
+                }
+                $ownsTransaction = true;
+            }
             $stmt = $this->pdo->prepare(
                 'INSERT INTO `user`
                     (`id`, `username`, `password`, `mailbox`, `email`,
@@ -261,9 +269,63 @@ final class UserRepository
                                ':display_name' => $displayName,
                                ':birth'        => $birth,
                            ]);
+            if ($verifiedPublicKey !== null) {
+                $key = $this->pdo->prepare('INSERT INTO user_zkp_key (user_id, public_key) VALUES (UNHEX(:id), :key)');
+                $key->execute([':id' => $hexId, ':key' => $verifiedPublicKey]);
+                $this->pdo->commit();
+            }
             return Result::ok(true);
         } catch (PDOException $e) {
+            if ($ownsTransaction && $this->pdo->inTransaction()) { $this->pdo->rollBack(); }
             return $this->dbErr($e);
+        }
+    }
+
+    /** @return Result<string|null> */
+    public function findZkpKey(string $hexId): Result
+    {
+        $row = $this->findZkpCredential($hexId);
+        if (!$row->isOk()) { return Result::err(null, $row->diagnostics()); }
+        $data = $row->unwrap();
+        return Result::ok(is_array($data) && is_string($data['public_key'] ?? null) ? $data['public_key'] : null);
+    }
+
+    /** Read key and revocation epoch together, so a pending login cannot adopt
+     * a newer epoch after that very key was revoked.
+     * @return Result<array<string,mixed>|null>
+     */
+    public function findZkpCredential(string $hexId): Result
+    {
+        return $this->fetchOne('SELECT k.public_key, u.session_epoch FROM user_zkp_key k
+            JOIN user u ON u.id = k.user_id WHERE k.user_id = UNHEX(:id)', [':id' => $hexId]);
+    }
+
+    /** Replace/revoke a credential and revoke sessions in the same transaction.
+     * @return Result<bool>
+     */
+    public function replaceZkpKey(string $hexId, ?string $publicKey): Result
+    {
+        $ownsTransaction = false;
+        try {
+            if ($this->pdo->inTransaction() || !$this->pdo->beginTransaction()) {
+                throw new PDOException('Key update requires its own transaction');
+            }
+            $ownsTransaction = true;
+            $epoch = $this->pdo->prepare("UPDATE user SET session_epoch = session_epoch + 1
+                WHERE id = UNHEX(:id) AND deleted = 0 AND (deletion_mode = 'none' OR deletion_mode = '')");
+            $epoch->execute([':id' => $hexId]);
+            if ($epoch->rowCount() !== 1) { throw new PDOException('Account is not active'); }
+            $remove = $this->pdo->prepare('DELETE FROM user_zkp_key WHERE user_id = UNHEX(:id)');
+            $remove->execute([':id' => $hexId]);
+            if ($publicKey !== null) {
+                $insert = $this->pdo->prepare('INSERT INTO user_zkp_key (user_id, public_key) VALUES (UNHEX(:id), :key)');
+                $insert->execute([':id' => $hexId, ':key' => $publicKey]);
+            }
+            $this->pdo->commit();
+            return Result::ok(true);
+        } catch (PDOException $error) {
+            if ($ownsTransaction && $this->pdo->inTransaction()) { $this->pdo->rollBack(); }
+            return $this->dbErr($error);
         }
     }
 

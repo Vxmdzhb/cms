@@ -12,6 +12,18 @@ declare(strict_types=1);
  * Values match the page_meta DB fallbacks; override freely.
  */
 return [
+    'user.zkp.method' => 'Login method',
+    'user.zkp.settings' => 'Local login key',
+    'user.zkp.settings_hint' => 'To add or replace a key, prove possession of the new key and enter your current password. Removing a key also requires a working password. Changes sign out all sessions. For a key-only account, keep a backup; if email recovery is configured, recover a password before replacing a lost key.',
+    'user.zkp.current_password' => 'Current account password',
+    'user.zkp.save' => 'Save key and sign out',
+    'user.zkp.revoke' => 'Remove key and sign out',
+    'user.zkp.password' => 'Password',
+    'user.zkp.key' => 'Local key (Schnorr proof)',
+    'user.zkp.instructions' => 'For a local key, leave the password fields empty. Copy this challenge into your local client, check the account and site it displays, then paste its proof below. Challenges expire after five minutes. Keep the private key on your computer.',
+    'user.zkp.challenge_label' => 'Challenge to copy',
+    'user.zkp.proof_label' => 'Proof from your local client',
+    'user.zkp.mail_notice' => 'Key login does not sign in to password-based webmail. A new key-only account has no mailbox password. Email recovery, when enabled, remains another way into the account.',
     // -------------------------------------------------------------------------
     // Page meta — title and description for each user section page
     // -------------------------------------------------------------------------

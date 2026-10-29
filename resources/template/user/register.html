@@ -8,6 +8,7 @@
 <form method="POST">
   <input type="hidden" name="prg_id" value="{{prg_id}}">
   <input type="hidden" name="_csrf"  value="{{csrf_token}}">
+  {{> zkp_auth}}
   <p>
     {{#show_invite}}
     <label for="reg_invite">{{reg_invite}}: </label>

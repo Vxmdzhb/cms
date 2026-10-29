@@ -46,6 +46,8 @@ use AstrX\User\Diagnostic\UserNotFoundDiagnostic;
  */
 final class UserService
 {
+    /** An unusable password hash, not a secret or a generated fallback password. */
+    public const string KEY_ONLY_PASSWORD = '!astrx-zkp-v1!';
     // Captcha display policy
     public const int CAPTCHA_SHOW_ALWAYS           = 0;
     public const int CAPTCHA_SHOW_NEVER            = 1;
@@ -638,7 +640,8 @@ final class UserService
         $storedHash = ($row !== null && isset($row['password']) && is_scalar($row['password']))
             ? (string) $row['password']
             : self::DUMMY_ARGON2ID;
-        $passwordOk = password_verify($password, $storedHash);
+        $passwordOk = password_verify($password, $storedHash === self::KEY_ONLY_PASSWORD ? self::DUMMY_ARGON2ID : $storedHash)
+            && $storedHash !== self::KEY_ONLY_PASSWORD;
 
         if ($row === null || !$passwordOk) {
             // Only touch the DB / count attempts when the user actually exists
@@ -665,6 +668,36 @@ final class UserService
             return $this->opErr('login_failed');
         }
 
+        return $this->finishCredentialLogin($row, $rememberMe, $password, $storedHash);
+    }
+
+    /** Called only AFTER a session-bound Schnorr proof was verified.
+     * It still matches the current enrolled key and applies all account policy.
+     * @return Result<array<string,mixed>>
+     */
+    public function loginWithPublicKey(string $username, string $verifiedPublicKey, bool $rememberMe): Result
+    {
+        if (!\AstrX\User\Zkp\Proof::publicKeyValid($verifiedPublicKey)) { return $this->opErr('login_failed'); }
+        $found = $this->repo->findByUsername($username);
+        if (!$found->isOk()) { return Result::err(null, $found->diagnostics()); }
+        $row = $found->unwrap();
+        if (!is_array($row) || !is_string($row['id'] ?? null)) { return $this->opErr('login_failed'); }
+        $credential = $this->repo->findZkpCredential($row['id']);
+        $key = $credential->isOk() ? $credential->unwrap() : null;
+        if (!is_array($key) || !is_string($key['public_key'] ?? null)
+            || !hash_equals($key['public_key'], $verifiedPublicKey) || !is_numeric($key['session_epoch'] ?? null)) {
+            return $this->opErr('login_failed');
+        }
+        $row['session_epoch'] = (int) $key['session_epoch'];
+        if ($this->isLockedOut($row['id'])) { return $this->opErr('login_failed'); }
+        return $this->finishCredentialLogin($row, $rememberMe);
+    }
+
+    /** Shared by passwords and key proofs; neither grants a session before TOTP.
+     * @param array<string,mixed> $row @return Result<array<string,mixed>>
+     */
+    private function finishCredentialLogin(array $row, bool $rememberMe, ?string $password = null, string $storedHash = ''): Result
+    {
         if (!$this->allowLoginNonVerified && !(bool) $row['verified']) {
             return $this->opErr('not_verified');
         }
@@ -687,7 +720,7 @@ final class UserService
 
         // FIX (rehash-on-verify): transparently upgrade the stored hash if the
         // algorithm/parameters have changed since it was written.
-        if (password_needs_rehash($storedHash, PASSWORD_ARGON2ID)) {
+        if ($password !== null && password_needs_rehash($storedHash, PASSWORD_ARGON2ID)) {
             $this->repo->updatePassword($hexId, password_hash($password, PASSWORD_ARGON2ID));
         }
 
@@ -721,6 +754,31 @@ final class UserService
         return Result::ok($row);
     }
 
+    /** @return Result<string|null> */
+    public function publicKeyFor(string $hexId): Result { return $this->repo->findZkpKey($hexId); }
+
+    /** Existing password accounts may add, replace or revoke the alternative.
+     * Requires the authenticated session AND a fresh current-password check.
+     * A key-only account cannot accidentally remove its last usable credential.
+     * @return Result<bool>
+     */
+    public function changePublicKey(string $hexId, string $currentPassword, ?string $verifiedPublicKey): Result
+    {
+        if (!$this->session->isLoggedIn() || $this->session->userId() !== $hexId || $this->isLockedOut($hexId)) {
+            return $this->opErr('login_failed');
+        }
+        if (!$this->verifyPassword($hexId, $currentPassword)) {
+            $this->registerAuthFailure($hexId);
+            return $this->opErr('wrong_password');
+        }
+        if ($verifiedPublicKey !== null && !\AstrX\User\Zkp\Proof::publicKeyValid($verifiedPublicKey)) {
+            return $this->opErr('login_failed');
+        }
+        $updated = $this->repo->replaceZkpKey($hexId, $verifiedPublicKey);
+        if ($updated->isOk()) { $this->session->logout(); }
+        return $updated;
+    }
+
     /** Coerce a mixed DB/scalar value to int, defaulting to 0. */
     private function intVal(mixed $v): int
     {
@@ -746,26 +804,31 @@ final class UserService
         ?int    $month,
         ?int    $day,
         ?int    $year,
+        ?string $verifiedPublicKey = null,
     ): Result {
         if (!$this->allowRegister) {
             return $this->opErr('registration_closed');
         }
 
-        if ($username === '' || $password === '') {
+        $keyOnly = $verifiedPublicKey !== null;
+        if ($verifiedPublicKey !== null && !\AstrX\User\Zkp\Proof::publicKeyValid($verifiedPublicKey)) {
+            return $this->opErr('login_failed');
+        }
+        if ($username === '' || (!$keyOnly && $password === '')) {
             return $this->opErr('empty_fields');
         }
 
         // Password validation. The code floor runs FIRST so a too-short password
         // gets the specific, translated "at least N characters" message even on
         // an install whose password_regex is empty (which is what ships).
-        if ($password !== $repeat) {
+        if (!$keyOnly && $password !== $repeat) {
             return $this->opErr('passwords_mismatch');
         }
-        $lengthErr = $this->checkPasswordLength($password);
+        $lengthErr = $keyOnly ? null : $this->checkPasswordLength($password);
         if ($lengthErr !== null) {
             return $lengthErr;
         }
-        $pwErr = $this->checkRegex($this->passwordRegex, $password);
+        $pwErr = $keyOnly ? null : $this->checkRegex($this->passwordRegex, $password);
         if ($pwErr !== null) {
             return $this->opErr('invalid_password', $pwErr);
         }
@@ -844,7 +907,7 @@ final class UserService
         }
 
         $hexId        = bin2hex(random_bytes(16));
-        $passwordHash = password_hash($password, PASSWORD_ARGON2ID);
+        $passwordHash = $keyOnly ? self::KEY_ONLY_PASSWORD : password_hash($password, PASSWORD_ARGON2ID);
 
         $createResult = $this->repo->create(
             $hexId, $username, $passwordHash,
@@ -852,6 +915,7 @@ final class UserService
             $this->requireRecoveryEmail ? $email : null,
             $this->requireDisplayName ? $displayName : null,
             $birth,
+            $verifiedPublicKey,
         );
 
         if (!$createResult->isOk()) {

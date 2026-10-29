@@ -23,6 +23,7 @@ use AstrX\User\UserService;
 use AstrX\Module\ModuleRegistry;
 use AstrX\User\MailboxNaming;
 use AstrX\User\UserSession;
+use AstrX\User\Zkp\ZkpService;
 use AstrX\Kernel\AbstractController;
 
 /**
@@ -55,6 +56,7 @@ final class RegisterController extends AbstractController
         private readonly InviteService         $inviteService,
         private readonly InviteRepository      $inviteRepo,
         private readonly ModuleRegistry        $modules,
+        private readonly ZkpService            $zkp,
     ) {
         parent::__construct($collector);
     }
@@ -166,6 +168,17 @@ final class RegisterController extends AbstractController
             return $this->renderForm($username, $mailbox, $email, $displayName, $inviteCode);
         }
 
+        // Prove possession before spending an invitation or creating any account.
+        $verifiedPublicKey = null;
+        if (self::mStr($posted, 'auth_method', 'password') === 'zkp') {
+            $proof = $this->zkp->verify('register', $username, self::mStr($posted, 'zkp_proof', ''));
+            if (!$proof->isOk()) {
+                $proof->drainTo($this->collector);
+                return $this->renderForm($username, $mailbox, $email, $displayName, $inviteCode);
+            }
+            $verifiedPublicKey = $proof->unwrap();
+        }
+
         // Invite-only: CLAIM the code atomically right before creating the
         // account — the SINGLE enforcement point. Only one concurrent sign-up can
         // win the flip (UPDATE … WHERE used_at IS NULL), so a valid code yields
@@ -184,6 +197,7 @@ final class RegisterController extends AbstractController
             $username, $password, $repeat,
             $mailbox ?: null, $email ?: null, $displayName ?: null,
             $month, $day, $year,
+            $verifiedPublicKey,
         );
 
         if (!$registerResult->isOk()) {
@@ -270,6 +284,7 @@ final class RegisterController extends AbstractController
             return $this->ok();
         }
 
+        $this->zkp->present($this->ctx, $this->t, 'register');
         $csrfToken = $this->csrf->generate(self::FORM);
         $pageUrl   = $this->request->uri()->path();
         $prgId     = $this->prg->createId($pageUrl);

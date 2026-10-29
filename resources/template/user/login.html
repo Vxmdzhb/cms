@@ -2,6 +2,7 @@
 <form method="POST">
     <input type="hidden" name="prg_id" value="{{prg_id}}">
     <input type="hidden" name="_csrf"  value="{{csrf_token}}">
+    {{> zkp_auth}}
     <p>
         <label for="username">{{login_username}}: </label>
         <input type="text" name="username" class="input" id="username" value="{{username_value}}" autocomplete="username"><br>

@@ -22,6 +22,7 @@ use AstrX\User\UserService;
 use AstrX\User\UserSession;
 use AstrX\Kernel\AbstractController;
 use AstrX\Api\ApiPermission;
+use AstrX\User\Zkp\ZkpService;
 
 /**
  * User settings page.
@@ -52,6 +53,7 @@ final class UserSettingsController extends AbstractController
         private readonly ApiKeyService         $apiKeys,
         private readonly Gate                  $gate,
         private readonly EmailService          $emailService,
+        private readonly ZkpService            $zkp,
     ) {
         parent::__construct($collector);
     }
@@ -131,6 +133,19 @@ final class UserSettingsController extends AbstractController
         }
 
         switch ($action) {
+            case 'enroll_zkp':
+                $proof = $this->zkp->verify('enroll', $this->session->username(), self::mStr($posted, 'zkp_proof', ''));
+                if (!$proof->isOk()) { $proof->drainTo($this->collector); break; }
+                $this->userService->changePublicKey($hexId, self::mStr($posted, 'current_password', ''), $proof->unwrap())
+                    ->drainTo($this->collector);
+                break;
+
+            case 'revoke_zkp':
+                if ($this->zkp->origin() === null) { break; }
+                $this->userService->changePublicKey($hexId, self::mStr($posted, 'current_password', ''), null)
+                    ->drainTo($this->collector);
+                break;
+
             case 'change_username':
                 $result = $this->userService->changeUsername(
                     $hexId, self::mStr($posted, 'username', ''),
@@ -325,6 +340,7 @@ final class UserSettingsController extends AbstractController
             'change_username', 'change_display_name', 'change_recovery_email',
             'change_password', 'verify_email', 'set_avatar', 'remove_avatar',
             'delete_account', 'change_theme', 'create_api_key', 'revoke_api_key',
+            'enroll_zkp', 'revoke_zkp',
         ];
         $csrfTokens = [];
         $prgIds     = [];
@@ -334,6 +350,15 @@ final class UserSettingsController extends AbstractController
         }
 
         $hasAvatar       = $this->session->hasAvatar();
+        $this->zkp->present($this->ctx, $this->t, 'enroll');
+        $this->ctx->set('zkp_current_key', '');
+        if ($this->zkp->origin() !== null) {
+            $key = $this->userService->publicKeyFor($hexId)->drainTo($this->collector);
+            if ($key->isOk() && is_string($key->unwrap())) { $this->ctx->set('zkp_current_key', $key->unwrap()); }
+        }
+        foreach (['settings', 'settings_hint', 'current_password', 'save', 'revoke'] as $label) {
+            $this->ctx->set('zkp_' . $label, $this->t->t('user.zkp.' . $label));
+        }
         $avatarUrl       = $this->urlGen->toPage('avatar') . '?uid=' . $hexId;
         // Hide the old-password field only for a fresh recovery grant tied to this
         // session, matching the check in change_password; otherwise the field could

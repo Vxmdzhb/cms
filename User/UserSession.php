@@ -106,7 +106,7 @@ final class UserSession implements Identity, ThemePreference
     /**
      * Persist user data to session after successful login / token verification.
      *
-     * @param array{id:string,username:string,display_name:string,type:int,verified:int|bool,avatar:int|bool,mailbox?:string,theme?:string|null} $row
+     * @param array{id:string,username:string,display_name:string,type:int,verified:int|bool,avatar:int|bool,mailbox?:string,theme?:string|null,session_epoch?:int} $row
      */
     public function login(array $row): void
     {
@@ -115,6 +115,7 @@ final class UserSession implements Identity, ThemePreference
         // used after login.
         $_SESSION['_regen_force'] = true;
         $_SESSION[self::LOGGED_IN] = true;
+        unset($_SESSION['_zkp_binding'], $_SESSION['_zkp_challenge_login'], $_SESSION['_zkp_challenge_register'], $_SESSION['_zkp_challenge_enroll']);
         // A stale password-reset grant (from a recovery-link click) must never
         // survive a fresh login — clear both the unlock window and the bound uid.
         unset($_SESSION['_pw_reset_until'], $_SESSION['_pw_reset_uid']);
@@ -130,6 +131,10 @@ final class UserSession implements Identity, ThemePreference
             // Per-user theme override. Empty string = no override = use global.
             'theme'        => (string) ($row['theme']   ?? ''),
         ];
+        // Key authentication captures this WITH the credential. Retain it
+        // through a pending TOTP step rather than adopting a newer epoch later.
+        if (is_numeric($row['session_epoch'] ?? null)) { $this->setSessionEpoch((int) $row['session_epoch']); }
+        unset($_SESSION['astrx_pending_2fa'], $_SESSION['astrx_pending_2fa_data'], $_SESSION['astrx_pending_2fa_ts']);
     }
 
     /**
@@ -304,6 +309,8 @@ final class UserSession implements Identity, ThemePreference
     {
         $_SESSION['_regen_force'] = true;
         $_SESSION[self::LOGGED_IN] = false;
+        unset($_SESSION['astrx_pending_2fa'], $_SESSION['astrx_pending_2fa_data'], $_SESSION['astrx_pending_2fa_ts']);
+        unset($_SESSION['_zkp_binding'], $_SESSION['_zkp_challenge_login'], $_SESSION['_zkp_challenge_register'], $_SESSION['_zkp_challenge_enroll']);
         unset($_SESSION[self::KEY]);
         unset($_SESSION['_pw_reset_until'], $_SESSION['_pw_reset_uid']); // don't leak a reset grant across sessions
         unset($_SESSION['_remember_until']); // drop the remember-me re-issue window too

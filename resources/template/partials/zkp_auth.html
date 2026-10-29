@@ -1,0 +1,12 @@
+{{#zkp_available}}
+<fieldset>
+  <legend>{{zkp_method}}</legend>
+  <label><input type="radio" name="auth_method" value="password" checked> {{zkp_password}}</label>
+  <label><input type="radio" name="auth_method" value="zkp"> {{zkp_key}}</label>
+  <p>{{zkp_instructions}}</p>
+  <p><code>python3 zkp_client.py prove --key blackhost.key --action {{zkp_action}}</code></p>
+  <label>{{zkp_challenge_label}}<br><textarea rows="5" cols="64" readonly spellcheck="false">{{zkp_challenge}}</textarea></label><br>
+  <label>{{zkp_proof_label}}<br><textarea name="zkp_proof" rows="5" cols="64" maxlength="4096" autocomplete="off" spellcheck="false"></textarea></label>
+  <p>{{zkp_mail_notice}}</p>
+</fieldset>
+{{/zkp_available}}

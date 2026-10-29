@@ -2,6 +2,13 @@
 declare(strict_types=1);
 
 return [
+    'ZkpService' => [
+        // Opt-in. Run migrations and use libsodium >= 1.0.18 before enabling.
+        'enabled' => false,
+        // Exact canonical origins, e.g. https://blackhost.xyz and your v3 onion.
+        // No trailing slash; never populate this dynamically from Host headers.
+        'origins' => [],
+    ],
     'UserService' => [
         'token_expiration_time' => 21600,
         'allow_register' => true,
