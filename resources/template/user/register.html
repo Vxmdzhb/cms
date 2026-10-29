@@ -8,7 +8,6 @@
 <form method="POST">
   <input type="hidden" name="prg_id" value="{{prg_id}}">
   <input type="hidden" name="_csrf"  value="{{csrf_token}}">
-  {{> zkp_auth}}
   <p>
     {{#show_invite}}
     <label for="reg_invite">{{reg_invite}}: </label>
@@ -22,6 +21,9 @@
     <input type="password" name="password" class="input" id="reg_pass" autocomplete="new-password"><br>
     <label for="reg_repeat">{{reg_repeat}}: </label>
     <input type="password" name="repeat" class="input" id="reg_repeat" autocomplete="new-password"><br>
+  </p>
+  {{> zkp_auth}}
+  <div>
     {{#show_mailbox}}
     <label for="reg_mailbox">{{reg_mailbox}}: </label>
     <input type="text" name="mailbox" class="input" id="reg_mailbox"
@@ -65,6 +67,6 @@
     {{/show_data_usage}}
     <input type="submit" value="{{reg_submit}}" class="input"><br>
     <a href="{{login_url}}">{{reg_back}}</a>.
-  </p>
+  </div>
 </form>
 {{/registrations_closed}}

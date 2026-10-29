@@ -13,6 +13,8 @@ declare(strict_types=1);
  */
 return [
     'user.zkp.method' => 'Login method',
+    'user.zkp.keygen_hint' => 'First use: get tools/zkp_client.py from the AstrX repository. With Python 3.10+ and libsodium installed, run this from the script’s directory, replacing YOUR_USERNAME with your account name:',
+    'user.zkp.keygen_notice' => 'Your computer creates blackhost.key and asks for a passphrase. The site does not provide this file. Keep the file and passphrase private, back up the file, and reuse it for later logins. Only the public key and proof go to the site.',
     'user.zkp.settings' => 'Local login key',
     'user.zkp.settings_hint' => 'To add or replace a key, prove possession of the new key and enter your current password. Removing a key also requires a working password. Changes sign out all sessions. For a key-only account, keep a backup; if email recovery is configured, recover a password before replacing a lost key.',
     'user.zkp.current_password' => 'Current account password',

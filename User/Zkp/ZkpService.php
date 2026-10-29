@@ -108,10 +108,11 @@ final class ZkpService
             $t->load('User');
             $ctx->set('zkp_available', true);
             $ctx->set('zkp_challenge', Proof::encode($challenge));
-            foreach (['method', 'password', 'key', 'instructions', 'challenge_label', 'proof_label', 'mail_notice'] as $label) {
+            foreach (['method', 'password', 'key', 'instructions', 'challenge_label', 'proof_label', 'mail_notice', 'keygen_hint', 'keygen_notice'] as $label) {
                 $ctx->set('zkp_' . $label, $t->t('user.zkp.' . $label));
             }
             $ctx->set('zkp_action', $action);
+            $ctx->set('zkp_origin', $origin);
         } catch (\PDOException | \RuntimeException) {
             // Password login remains usable if the optional feature is unavailable.
             $ctx->set('zkp_available', false);

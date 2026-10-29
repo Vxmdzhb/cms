@@ -4,9 +4,12 @@
   <label><input type="radio" name="auth_method" value="password" checked> {{zkp_password}}</label>
   <label><input type="radio" name="auth_method" value="zkp"> {{zkp_key}}</label>
   <p>{{zkp_instructions}}</p>
-  <p><code>python3 zkp_client.py prove --key blackhost.key --action {{zkp_action}}</code></p>
+  <pre style="font-size:0.875em; white-space:pre-wrap; overflow-wrap:anywhere">python3 zkp_client.py prove --key blackhost.key --action {{zkp_action}}</pre>
   <label>{{zkp_challenge_label}}<br><textarea rows="5" cols="64" readonly spellcheck="false">{{zkp_challenge}}</textarea></label><br>
   <label>{{zkp_proof_label}}<br><textarea name="zkp_proof" rows="5" cols="64" maxlength="4096" autocomplete="off" spellcheck="false"></textarea></label>
   <p>{{zkp_mail_notice}}</p>
+  <p>{{zkp_keygen_hint}}</p>
+  <pre style="font-size:0.875em; white-space:pre-wrap; overflow-wrap:anywhere">python3 zkp_client.py keygen --key blackhost.key --origin {{zkp_origin}} --username 'YOUR_USERNAME'</pre>
+  <p>{{zkp_keygen_notice}}</p>
 </fieldset>
 {{/zkp_available}}
