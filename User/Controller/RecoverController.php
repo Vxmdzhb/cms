@@ -279,6 +279,7 @@ final class RecoverController extends AbstractController
         $this->ctx->set('show_captcha',          $showCaptcha);
         $this->ctx->set('captcha_id',            $captchaId);
         $this->ctx->set('captcha_image',         $captchaB64);
+        $this->captchaService->presentReload($this->ctx, $this->urlGen, $this->t, $captchaId);
         $this->ctx->set('login_url',             $this->urlGen->toPage($this->t->t('WORDING_LOGIN')));
         $this->ctx->set('recovery_unavailable',  false);
 
