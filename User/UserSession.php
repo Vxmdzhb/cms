@@ -119,6 +119,9 @@ final class UserSession implements Identity, ThemePreference
         // A stale password-reset grant (from a recovery-link click) must never
         // survive a fresh login — clear both the unlock window and the bound uid.
         unset($_SESSION['_pw_reset_until'], $_SESSION['_pw_reset_uid']);
+        // A finished login ends any pending second-factor step. (Before the @var
+        // below, which narrows $_SESSION for PHPStan.)
+        unset($_SESSION['astrx_pending_2fa'], $_SESSION['astrx_pending_2fa_data'], $_SESSION['astrx_pending_2fa_ts']);
         /** @var array{id:string,username:string,display_name:string,type:int,verified:bool,avatar:bool,mailbox:string,theme:string} $_SESSION */
         $_SESSION[self::KEY] = [
             'id'           => (string)  $row['id'],
@@ -134,7 +137,6 @@ final class UserSession implements Identity, ThemePreference
         // Key authentication captures this WITH the credential. Retain it
         // through a pending TOTP step rather than adopting a newer epoch later.
         if (is_numeric($row['session_epoch'] ?? null)) { $this->setSessionEpoch((int) $row['session_epoch']); }
-        unset($_SESSION['astrx_pending_2fa'], $_SESSION['astrx_pending_2fa_data'], $_SESSION['astrx_pending_2fa_ts']);
     }
 
     /**

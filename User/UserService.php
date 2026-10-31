@@ -694,7 +694,8 @@ final class UserService
     }
 
     /** Shared by passwords and key proofs; neither grants a session before TOTP.
-     * @param array<string,mixed> $row @return Result<array<string,mixed>>
+     * @param array<string,mixed> $row
+     * @return Result<array<string,mixed>>
      */
     private function finishCredentialLogin(array $row, bool $rememberMe, ?string $password = null, string $storedHash = ''): Result
     {

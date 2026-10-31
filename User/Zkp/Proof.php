@@ -60,7 +60,8 @@ final class Proof
     }
 
     /** The server supplies the stored challenge, never a client-chosen context.
-     * @param array<string,mixed> $challenge @param array<string,mixed> $proof
+     * @param array<string,mixed> $challenge
+     * @param array<string,mixed> $proof
      */
     public static function verify(array $challenge, string $username, array $proof): bool
     {
