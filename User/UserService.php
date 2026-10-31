@@ -645,8 +645,10 @@ final class UserService
 
         if ($row === null || !$passwordOk) {
             // Only touch the DB / count attempts when the user actually exists
-            // (never leak existence for unknown usernames).
-            if ($row !== null) {
+            // (never leak existence for unknown usernames). A key-only account
+            // has no password to guess: counting its failures would only let
+            // anyone lock its owner out.
+            if ($row !== null && $storedHash !== self::KEY_ONLY_PASSWORD) {
                 $hexId = is_scalar($row['id']) ? (string) $row['id'] : '';
                 // Increment first, THEN arm the lock atomically against the
                 // COMMITTED counter. Deciding the lock on the pre-increment value
@@ -689,7 +691,9 @@ final class UserService
             return $this->opErr('login_failed');
         }
         $row['session_epoch'] = (int) $key['session_epoch'];
-        if ($this->isLockedOut($row['id'])) { return $this->opErr('login_failed'); }
+        // No lockout check: the lockout throttles password guessing, and a key
+        // cannot be guessed. Honouring it here let ten wrong passwords lock the
+        // key's owner out. The TOTP step still checks the lockout itself.
         return $this->finishCredentialLogin($row, $rememberMe);
     }
 
@@ -793,6 +797,12 @@ final class UserService
     /**
      * Register a new user.
      *
+     * $verifiedPublicKey is either an already verified key, or a closure that
+     * verifies the key proof. The closure runs only after every other check has
+     * passed, so a typo elsewhere in the form doesn't spend the proof. With a key
+     * and no password, the account is key-only; with both, it keeps both.
+     *
+     * @param string|\Closure(): Result<string>|null $verifiedPublicKey
      * @return Result<string> Hex user ID on success.
      */
     public function register(
@@ -805,14 +815,14 @@ final class UserService
         ?int    $month,
         ?int    $day,
         ?int    $year,
-        ?string $verifiedPublicKey = null,
+        string|\Closure|null $verifiedPublicKey = null,
     ): Result {
         if (!$this->allowRegister) {
             return $this->opErr('registration_closed');
         }
 
-        $keyOnly = $verifiedPublicKey !== null;
-        if ($verifiedPublicKey !== null && !\AstrX\User\Zkp\Proof::publicKeyValid($verifiedPublicKey)) {
+        $keyOnly = $verifiedPublicKey !== null && $password === '' && $repeat === '';
+        if (is_string($verifiedPublicKey) && !\AstrX\User\Zkp\Proof::publicKeyValid($verifiedPublicKey)) {
             return $this->opErr('login_failed');
         }
         if ($username === '' || (!$keyOnly && $password === '')) {
@@ -904,6 +914,17 @@ final class UserService
             }
             if ($this->maximumAge > 0 && $ageYears > $this->maximumAge) {
                 return $this->opErr('invalid_date');
+            }
+        }
+
+        // Last: verify the key proof, which spends its one-time challenge.
+        if ($verifiedPublicKey instanceof \Closure) {
+            $proof = $verifiedPublicKey();
+            if (!$proof instanceof Result) { return $this->opErr('login_failed'); }
+            if (!$proof->isOk()) { return Result::err(null, $proof->diagnostics()); }
+            $verifiedPublicKey = $proof->unwrap();
+            if (!is_string($verifiedPublicKey) || !\AstrX\User\Zkp\Proof::publicKeyValid($verifiedPublicKey)) {
+                return $this->opErr('login_failed');
             }
         }
 

@@ -168,16 +168,12 @@ final class RegisterController extends AbstractController
             return $this->renderForm($username, $mailbox, $email, $displayName, $inviteCode);
         }
 
-        // Prove possession before spending an invitation or creating any account.
-        $verifiedPublicKey = null;
-        if (self::mStr($posted, 'auth_method', 'password') === 'zkp') {
-            $proof = $this->zkp->verify('register', $username, self::mStr($posted, 'zkp_proof', ''));
-            if (!$proof->isOk()) {
-                $proof->drainTo($this->collector);
-                return $this->renderForm($username, $mailbox, $email, $displayName, $inviteCode);
-            }
-            $verifiedPublicKey = $proof->unwrap();
-        }
+        // A filled-in proof box means "sign up with a key". The proof is checked
+        // inside register(), after every other field, so a typo elsewhere doesn't
+        // spend it; a refused invite or failed check gives the invite back below.
+        $zkpProof = trim(self::mStr($posted, 'zkp_proof', ''));
+        $verifiedPublicKey = $zkpProof === '' ? null
+            : fn(): Result => $this->zkp->verify('register', $username, $zkpProof);
 
         // Invite-only: CLAIM the code atomically right before creating the
         // account — the SINGLE enforcement point. Only one concurrent sign-up can
