@@ -12,20 +12,17 @@ declare(strict_types=1);
  * Values match the page_meta DB fallbacks; override freely.
  */
 return [
-    'user.zkp.method' => 'Login method',
-    'user.zkp.keygen_hint' => 'First use: get tools/zkp_client.py from the AstrX repository. With Python 3.10+ and libsodium installed, run this from the script’s directory, replacing YOUR_USERNAME with your account name:',
-    'user.zkp.keygen_notice' => 'Your computer creates blackhost.key and asks for a passphrase. The site does not provide this file. Keep the file and passphrase private, back up the file, and reuse it for later logins. Only the public key and proof go to the site.',
+    'user.zkp.key_login' => 'Or log in with a key',
+    'user.zkp.key_register' => 'Or sign up with a key',
+    'user.zkp.instructions' => 'Run this with your key, paste the challenge, then paste the proof it prints.',
+    'user.zkp.challenge_label' => 'Challenge',
+    'user.zkp.proof_label' => 'Proof',
+    'user.zkp.help' => 'How do I get a key?',
     'user.zkp.settings' => 'Local login key',
     'user.zkp.settings_hint' => 'To add or replace a key, prove possession of the new key and enter your current password. Removing a key also requires a working password. Changes sign out all sessions. For a key-only account, keep a backup; if email recovery is configured, recover a password before replacing a lost key.',
     'user.zkp.current_password' => 'Current account password',
     'user.zkp.save' => 'Save key and sign out',
     'user.zkp.revoke' => 'Remove key and sign out',
-    'user.zkp.password' => 'Password',
-    'user.zkp.key' => 'Local key (Schnorr proof)',
-    'user.zkp.instructions' => 'For a local key, leave the password fields empty. Copy this challenge into your local client, check the account and site it displays, then paste its proof below. Challenges expire after five minutes. Keep the private key on your computer.',
-    'user.zkp.challenge_label' => 'Challenge to copy',
-    'user.zkp.proof_label' => 'Proof from your local client',
-    'user.zkp.mail_notice' => 'Key login does not sign in to password-based webmail. A new key-only account has no mailbox password. Email recovery, when enabled, remains another way into the account.',
     // -------------------------------------------------------------------------
     // Page meta — title and description for each user section page
     // -------------------------------------------------------------------------

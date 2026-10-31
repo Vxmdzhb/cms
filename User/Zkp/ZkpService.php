@@ -20,6 +20,7 @@ final class ZkpService
     private bool $enabled = false;
     /** @var list<string> */
     private array $origins = [];
+    private string $helpUrl = '';
 
     public function __construct(private readonly ChallengeRepository $challenges, private readonly Request $request) {}
 
@@ -29,6 +30,13 @@ final class ZkpService
     /** @param list<string> $origins */
     #[InjectConfig('origins')]
     public function setOrigins(array $origins): void { $this->origins = $origins; }
+
+    #[InjectConfig('help_url')]
+    public function setHelpUrl(string $value): void
+    {
+        // A link on the page: only http(s), or a path on this site.
+        $this->helpUrl = preg_match('#\A(https?://[^\s"<>]+|/[^\s"<>]*)\z#D', $value) === 1 ? $value : '';
+    }
 
     /** An allowlist, never a Host-header-derived trust decision. */
     public function origin(): ?string
@@ -108,11 +116,13 @@ final class ZkpService
             $t->load('User');
             $ctx->set('zkp_available', true);
             $ctx->set('zkp_challenge', Proof::encode($challenge));
-            foreach (['method', 'password', 'key', 'instructions', 'challenge_label', 'proof_label', 'mail_notice', 'keygen_hint', 'keygen_notice'] as $label) {
+            foreach (['instructions', 'challenge_label', 'proof_label', 'help'] as $label) {
                 $ctx->set('zkp_' . $label, $t->t('user.zkp.' . $label));
             }
+            $ctx->set('zkp_summary', $t->t($action === 'register' ? 'user.zkp.key_register' : 'user.zkp.key_login'));
             $ctx->set('zkp_action', $action);
-            $ctx->set('zkp_origin', $origin);
+            $ctx->set('zkp_has_help', $this->helpUrl !== '');
+            $ctx->set('zkp_help_url', $this->helpUrl);
         } catch (\PDOException | \RuntimeException) {
             // Password login remains usable if the optional feature is unavailable.
             $ctx->set('zkp_available', false);

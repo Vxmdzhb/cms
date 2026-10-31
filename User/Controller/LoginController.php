@@ -104,9 +104,11 @@ final class LoginController extends AbstractController
         }
 
         // Login
-        $keyLogin = self::mStr($posted, 'auth_method', 'password') === 'zkp';
+        // A filled-in proof box means "log in with a key"; otherwise, the password.
+        $zkpProof = trim(self::mStr($posted, 'zkp_proof', ''));
+        $keyLogin = $zkpProof !== '';
         if ($keyLogin) {
-            $proof = $this->zkp->verify('login', $username, self::mStr($posted, 'zkp_proof', ''));
+            $proof = $this->zkp->verify('login', $username, $zkpProof);
             $loginResult = $proof->isOk()
                 ? $this->userService->loginWithPublicKey($username, $proof->unwrap(), $rememberMe)
                 : Result::err(null, $proof->diagnostics());

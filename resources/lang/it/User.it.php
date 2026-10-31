@@ -8,20 +8,17 @@ declare(strict_types=1);
  * Le chiavi .title / .description evitano i notice MissingTranslation.
  */
 return [
-    'user.zkp.method' => 'Metodo di accesso',
-    'user.zkp.keygen_hint' => 'Primo utilizzo: scarica tools/zkp_client.py dal repository AstrX. Con Python 3.10+ e libsodium installati, esegui questo comando dalla cartella dello script, sostituendo YOUR_USERNAME con il nome del tuo account:',
-    'user.zkp.keygen_notice' => 'Il tuo computer crea blackhost.key e richiede una passphrase. Il sito non fornisce questo file. Mantieni privati il file e la passphrase, conserva una copia del file e riutilizzalo per gli accessi successivi. Al sito vengono inviati solo la chiave pubblica e la prova.',
+    'user.zkp.key_login' => 'Oppure accedi con una chiave',
+    'user.zkp.key_register' => 'Oppure registrati con una chiave',
+    'user.zkp.instructions' => 'Esegui questo comando con la tua chiave, incolla la richiesta, poi incolla la prova che stampa.',
+    'user.zkp.challenge_label' => 'Richiesta',
+    'user.zkp.proof_label' => 'Prova',
+    'user.zkp.help' => 'Come ottengo una chiave?',
     'user.zkp.settings' => 'Chiave locale di accesso',
     'user.zkp.settings_hint' => 'Per aggiungere o sostituire una chiave, dimostra di possedere la nuova chiave e inserisci la password attuale. Anche la rimozione richiede una password valida. La modifica termina tutte le sessioni. Per un account con sola chiave, conserva una copia; se il recupero via email è configurato, recupera una password prima di sostituire una chiave persa.',
     'user.zkp.current_password' => 'Password attuale dell’account',
     'user.zkp.save' => 'Salva la chiave ed esci',
     'user.zkp.revoke' => 'Rimuovi la chiave ed esci',
-    'user.zkp.password' => 'Password',
-    'user.zkp.key' => 'Chiave locale (prova di Schnorr)',
-    'user.zkp.instructions' => 'Per usare una chiave locale, lascia vuoti i campi password. Copia questa richiesta nel client locale, controlla account e sito mostrati, poi incolla la prova qui sotto. La richiesta scade dopo cinque minuti. Conserva la chiave privata sul tuo computer.',
-    'user.zkp.challenge_label' => 'Richiesta da copiare',
-    'user.zkp.proof_label' => 'Prova prodotta dal client locale',
-    'user.zkp.mail_notice' => 'Questo metodo non accede alla webmail basata su password. Un nuovo account con sola chiave non ha una password per la casella. Il recupero via email, se abilitato, resta un altro modo per accedere.',
     // -------------------------------------------------------------------------
     // Meta pagina — titolo e descrizione
     // -------------------------------------------------------------------------
