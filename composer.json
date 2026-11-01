@@ -18,8 +18,25 @@
         "ext-openssl": "*",
         "ext-pdo": "*",
         "ext-session": "*",
-        "astrx/framework": "self.version",
-        "astrx/library": "self.version"
+        "astrx/api": "self.version",
+        "astrx/auth": "self.version",
+        "astrx/captcha": "self.version",
+        "astrx/config": "self.version",
+        "astrx/csrf": "self.version",
+        "astrx/error-handler": "self.version",
+        "astrx/http": "self.version",
+        "astrx/i18n": "self.version",
+        "astrx/identicon": "self.version",
+        "astrx/image": "self.version",
+        "astrx/kernel": "self.version",
+        "astrx/mail": "self.version",
+        "astrx/module": "self.version",
+        "astrx/pagination": "self.version",
+        "astrx/result": "self.version",
+        "astrx/routing": "self.version",
+        "astrx/session": "self.version",
+        "astrx/support": "self.version",
+        "astrx/template": "self.version"
     },
     "autoload": {
         "psr-4": {
@@ -39,14 +56,88 @@
             "resources": "resources"
         }
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/Vxmdzhb/framework"
+            "url": "https://github.com/Vxmdzhb/result"
         },
         {
             "type": "vcs",
-            "url": "https://github.com/Vxmdzhb/library"
+            "url": "https://github.com/Vxmdzhb/support"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/config"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/auth"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/api"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/http"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/i18n"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/session"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/kernel"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/routing"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/template"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/captcha"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/csrf"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/error-handler"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/identicon"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/image"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/mail"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/injector"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/module"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/pagination"
         }
     ]
 }
