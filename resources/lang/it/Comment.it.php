@@ -41,7 +41,6 @@ return [
     // ── Feedback di pubblicazione (mostrato via flash dopo il redirect PRG) ────
     'comment.posted'                 => 'Commento pubblicato.',
     'comment.error.csrf'             => 'La sessione è scaduta. Riprova.',
-    'comment.error.captcha'          => 'Il captcha non è corretto. Riprova.',
     'comment.error.generic'          => 'Impossibile pubblicare il commento.',
     'comment.error.flood'            => 'Stai pubblicando troppo velocemente — attendi un momento e riprova.',
     'comment.error.antispam'         => 'Il tuo commento è stato bloccato da un filtro antispam.',

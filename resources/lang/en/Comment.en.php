@@ -41,7 +41,6 @@ return [
     // ── Post feedback (surfaced via a flash message after the PRG redirect) ────
     'comment.posted'                 => 'Comment posted.',
     'comment.error.csrf'             => 'Your session expired. Please try again.',
-    'comment.error.captcha'          => 'The captcha was incorrect. Please try again.',
     'comment.error.generic'          => 'Your comment could not be posted.',
     'comment.error.flood'            => 'You are posting too fast — please wait a moment and try again.',
     'comment.error.antispam'         => 'Your comment was blocked by a spam filter.',
