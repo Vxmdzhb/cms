@@ -11,7 +11,7 @@ use AstrX\Result\DiagnosticLevel;
 use AstrX\Result\Diagnostics;
 use AstrX\Result\Result;
 use AstrX\Template\TemplateVars;
-use AstrX\User\Diagnostic\UserLoginFailedDiagnostic;
+use AstrX\User\Diagnostic\UserKeyProofRejectedDiagnostic;
 
 /** Optional credential proof; account policy and session grants stay in UserService. */
 #[ConfigDomain('ZkpService', file: 'User')]
@@ -140,7 +140,7 @@ final class ZkpService
      */
     private function failure(): Result
     {
-        return Result::err(null, Diagnostics::of(new UserLoginFailedDiagnostic('astrx.user/login_failed', DiagnosticLevel::NOTICE)));
+        return Result::err(null, Diagnostics::of(new UserKeyProofRejectedDiagnostic('astrx.user/key_proof_rejected', DiagnosticLevel::NOTICE)));
     }
 
     /** Use the existing form's PRG, CSRF and captcha; only add the alternative. */

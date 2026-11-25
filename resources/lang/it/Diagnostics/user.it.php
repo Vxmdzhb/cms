@@ -16,6 +16,10 @@ return [
             return "Si è verificato un errore del database. Riprova.";
         },
 
+    'astrx.user/key_proof_rejected' =>
+        fn(DiagnosticInterface $d, Translator $t): string =>
+        'La prova con chiave non è stata accettata. Copia di nuovo nel client la sfida mostrata in questa pagina e incolla la nuova prova.',
+
     'astrx.user/login_failed' =>
         fn(DiagnosticInterface $d, Translator $t): string =>
         "Nome utente o password errati.",

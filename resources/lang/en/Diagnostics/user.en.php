@@ -34,6 +34,10 @@ return [
         fn(DiagnosticInterface $d, Translator $t): string =>
         'A database error occurred. Please try again.',
 
+    'astrx.user/key_proof_rejected' =>
+        fn(DiagnosticInterface $d, Translator $t): string =>
+        'The key proof was not accepted. Copy the challenge shown on this page into the client again and paste the new proof.',
+
     'astrx.user/login_failed' =>
         fn(DiagnosticInterface $d, Translator $t): string =>
         'Incorrect username or password.',
