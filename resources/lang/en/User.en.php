@@ -12,6 +12,8 @@ declare(strict_types=1);
  * Values match the page_meta DB fallbacks; override freely.
  */
 return [
+    'user.register.failed' => 'Registration did not complete. Please try again.',
+    'user.register.form_expired' => 'This registration form expired. Please submit the new form.',
     'user.login.form_expired' => 'This login form expired. Please submit the new form.',
     'user.login.captcha_failed' => 'The CAPTCHA was incorrect or expired. Please try the new one.',
     'user.login.proof_failed' => 'The key proof was not accepted. Use the current challenge and try again.',

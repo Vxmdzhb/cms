@@ -8,6 +8,8 @@ declare(strict_types=1);
  * Le chiavi .title / .description evitano i notice MissingTranslation.
  */
 return [
+    'user.register.failed' => 'Registrazione non completata. Riprova.',
+    'user.register.form_expired' => 'Il modulo di registrazione è scaduto. Invia il nuovo modulo.',
     'user.login.form_expired' => 'Il modulo di accesso è scaduto. Invia il nuovo modulo.',
     'user.login.captcha_failed' => 'Il CAPTCHA è errato o scaduto. Riprova con quello nuovo.',
     'user.login.proof_failed' => 'La prova con chiave non è stata accettata. Usa la sfida attuale e riprova.',

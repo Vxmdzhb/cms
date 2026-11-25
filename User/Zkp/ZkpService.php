@@ -17,12 +17,22 @@ use AstrX\User\Diagnostic\UserLoginFailedDiagnostic;
 #[ConfigDomain('ZkpService', file: 'User')]
 final class ZkpService
 {
+    public const int DEFAULT_TTL = 300;
+    public const int MIN_TTL = 60;
+    public const int MAX_TTL = 600;
+    private int $ttl = self::DEFAULT_TTL;
     private bool $enabled = false;
     /** @var list<string> */
     private array $origins = [];
     private string $helpUrl = '';
 
     public function __construct(private readonly ChallengeRepository $challenges, private readonly Request $request) {}
+
+    #[InjectConfig('challenge_ttl')]
+    public function setChallengeTtl(int $seconds): void
+    {
+        $this->ttl = max(self::MIN_TTL, min(self::MAX_TTL, $seconds));
+    }
 
     #[InjectConfig('enabled')]
     public function setEnabled(bool $value): void { $this->enabled = $value; }
@@ -35,26 +45,61 @@ final class ZkpService
     public function setHelpUrl(string $value): void
     {
         // A link on the page: only http(s), or a path on this site.
-        $this->helpUrl = preg_match('#\A(https?://[^\s"<>]+|/[^\s"<>]*)\z#D', $value) === 1 ? $value : '';
+        $this->helpUrl = self::validHelpUrl($value) ? $value : '';
     }
 
-    /** An allowlist, never a Host-header-derived trust decision. */
+    public static function validHelpUrl(string $url): bool
+    {
+        if ($url === '') { return true; }
+        if (str_contains($url, '\\') || preg_match('/[\x00-\x20\x7f"<>]/', $url)) { return false; }
+        if (str_starts_with($url, '/')) { return !str_starts_with($url, '//'); }
+        return preg_match('~\Ahttps?://~', $url) === 1 && filter_var($url, FILTER_VALIDATE_URL) !== false
+            && parse_url($url, PHP_URL_USER) === null;
+    }
+
+    public static function validOrigin(string $origin): bool
+    {
+        if (strlen($origin) > 255 || !preg_match('~\A(https?)://([a-z0-9.-]+)(?::([1-9][0-9]{0,4}))?\z~D', $origin, $parts)) {
+            return false;
+        }
+        $https = $parts[1] === 'https';
+        $port = isset($parts[3]) ? (int) $parts[3] : null;
+        if ($port !== null && ($port > 65535 || $port === ($https ? 443 : 80))) { return false; }
+        return $https || in_array($parts[2], ['localhost', '127.0.0.1'], true)
+            || preg_match('/\A[a-z2-7]{56}\.onion\z/D', $parts[2]) === 1;
+    }
+
+    public function requestOrigin(): string
+    {
+        $secure = $this->request->isSecure();
+        $uri = $this->request->uri();
+        $scheme = $secure ? 'https' : 'http';
+        $origin = $scheme . '://' . strtolower($uri->host());
+        $port = $uri->port();
+        // A TLS terminator may correctly set HTTPS while FastCGI still reports
+        // its own port 80. Retain an explicitly requested https://host:80.
+        $host = $this->request->server()->get('HTTP_HOST');
+        $implicitBackendPort = $secure && $port === 80 && is_string($host) && !str_contains($host, ':');
+        if (!$implicitBackendPort && $port !== null && $port !== ($secure ? 443 : 80)) {
+            $origin .= ':' . $port;
+        }
+        return $origin;
+    }
+
     public function origin(): ?string
     {
         if (!$this->enabled || !Proof::available()) { return null; }
-        $uri = $this->request->uri();
-        $scheme = $this->request->isSecure() ? 'https' : 'http';
-        $host = strtolower($uri->host());
-        $port = $uri->port();
-        $origin = $scheme . '://' . $host;
-        if ($port !== null && !(($scheme === 'https' && $port === 443) || ($scheme === 'http' && $port === 80))) {
-            $origin .= ':' . $port;
-        }
-        if (!in_array($origin, $this->origins, true) || strlen($origin) > 255
-            || !preg_match('/\A[a-z0-9.-]+\z/D', $host)) { return null; }
-        if ($scheme !== 'https' && !preg_match('/\A[a-z2-7]{56}\.onion\z/D', $host)
-            && !in_array($host, ['localhost', '127.0.0.1'], true)) { return null; }
-        return $origin;
+        $origin = $this->requestOrigin();
+        return self::validOrigin($origin) && in_array($origin, $this->origins, true) ? $origin : null;
+    }
+
+    /** Read-only checks for the system administrator on this origin. */
+    public function configurationStatus(): string
+    {
+        if (!$this->enabled) { return 'disabled'; }
+        if (!Proof::available()) { return 'sodium'; }
+        if ($this->origin() === null) { return 'origin'; }
+        return $this->challenges->schemaReadable() ? 'ready' : 'schema';
     }
 
     private function binding(): string
@@ -111,7 +156,7 @@ final class ZkpService
             $binding = $this->binding();
             $saved = $_SESSION['_zkp_challenge_' . $action] ?? '';
             $challenge = is_string($saved) ? $this->challenges->find($saved, $binding, $action, $origin, time()) : null;
-            if ($challenge === null) { $challenge = $this->challenges->issue($binding, $action, $origin, time()); }
+            if ($challenge === null) { $challenge = $this->challenges->issue($binding, $action, $origin, time(), $this->ttl); }
             $_SESSION['_zkp_challenge_' . $action] = $challenge['nonce'];
             $t->load('User');
             $ctx->set('zkp_available', true);

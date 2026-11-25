@@ -148,6 +148,23 @@
 <hr>
 <h3>{{section_config_heading}}</h3>
 
+{{#can_set_zkp}}
+<h4>{{zkp_label_heading}}</h4>
+<p>{{zkp_status}}<br>{{zkp_label_observed}} <code>{{zkp_request_origin}}</code></p>
+<form method="POST">
+    <input type="hidden" name="prg_id" value="{{prg_id}}">
+    <input type="hidden" name="_csrf" value="{{csrf_token}}">
+    <input type="hidden" name="section" value="zkp">
+    <p><label><input type="checkbox" name="zkp_enabled" value="1"{{#cfg_zkp_enabled}} checked{{/cfg_zkp_enabled}}> {{zkp_label_enable}}</label></p>
+    <label for="zkp_origins">{{zkp_label_origins}}</label><br>
+    <textarea id="zkp_origins" name="zkp_origins" rows="3" cols="48" aria-describedby="zkp_origins_hint" spellcheck="false">{{cfg_zkp_origins}}</textarea>
+    <p id="zkp_origins_hint">{{zkp_label_hint}}</p>
+    <p><label>{{zkp_label_ttl}} <input type="number" name="zkp_ttl" min="60" max="600" required value="{{cfg_zkp_ttl}}"></label></p>
+    <p><label>{{zkp_label_help}} <input type="text" name="zkp_help" value="{{cfg_zkp_help}}"></label></p>
+    <button type="submit">{{btn_save}}</button>
+</form>
+{{/can_set_zkp}}
+
 <h4>{{section_userservice}}</h4>
 <form method="POST">
     <input type="hidden" name="prg_id"  value="{{prg_id}}">

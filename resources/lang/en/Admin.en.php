@@ -5,6 +5,23 @@ declare(strict_types=1);
  * Admin section translations — en locale.
  */
 return [
+    'admin.zkp.heading' => 'Zero-knowledge login (ZKP)',
+    'admin.zkp.enable' => 'Enable key registration and login',
+    'admin.zkp.origins' => 'Allowed public origins, one per line',
+    'admin.zkp.hint' => 'Enter the exact browser origin, such as https://example.org, without a path or trailing slash. HTTP is supported on v3 onion services and loopback.',
+    'admin.zkp.help' => 'Key setup guide URL (optional)',
+    'admin.zkp.ttl' => 'New challenge lifetime in seconds (60–600)',
+    'admin.zkp.observed' => 'Origin seen by PHP on this request:',
+    'admin.zkp.status.disabled' => 'Key registration and login are disabled.',
+    'admin.zkp.status.ready' => 'This origin is allowed and PHP can read both ZKP tables.',
+    'admin.zkp.status.origin' => 'Key forms are hidden on this origin. Compare the public address, scheme and port with the allowlist.',
+    'admin.zkp.status.sodium' => 'Key forms are hidden because this PHP runtime lacks libsodium Ristretto support.',
+    'admin.zkp.status.schema' => 'PHP cannot read the ZKP schema. Check the database migrations and database permissions.',
+    'admin.zkp.bad_origin' => 'Settings were not saved. Enter one exact supported origin per line.',
+    'admin.zkp.need_origin' => 'Add at least one public origin to enable ZKP.',
+    'admin.zkp.bad_ttl' => 'Use a challenge lifetime between 60 and 600 seconds.',
+    'admin.zkp.bad_help' => 'Use a local path starting with / or an HTTP(S) URL for the guide.',
+    'admin.zkp.save_failed' => 'Could not save User.config.php. Check its write permissions.',
     // ---- Page meta ----------------------------------------------------------
     'WORDING_ADMIN.title'                => 'Administration',
     'WORDING_ADMIN.description'          => 'Site administration panel.',

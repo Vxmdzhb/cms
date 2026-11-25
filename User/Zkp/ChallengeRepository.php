@@ -23,8 +23,18 @@ final class ChallengeRepository
         return Proof::packet(['nonce'=>$row['nonce'], 'action'=>$row['action'], 'origin'=>$row['origin'], 'expires'=>$row['expires']]);
     }
 
+    public function schemaReadable(): bool
+    {
+        try {
+            return $this->pdo->query('SELECT user_id, public_key FROM user_zkp_key WHERE 1=0') !== false
+                && $this->pdo->query('SELECT nonce, session_hash, action, origin, expires, used FROM user_zkp_challenge WHERE 1=0') !== false;
+        } catch (\PDOException) {
+            return false;
+        }
+    }
+
     /** @return array<string,mixed> */
-    public function issue(string $binding, string $action, string $origin, int $now): array
+    public function issue(string $binding, string $action, string $origin, int $now, int $ttl = ZkpService::DEFAULT_TTL): array
     {
         $clean = $this->pdo->prepare('DELETE FROM user_zkp_challenge WHERE expires <= :now');
         $clean->execute([':now' => $now]);
@@ -34,7 +44,7 @@ final class ChallengeRepository
         $count->execute([':binding' => $binding]);
         if ((int) $count->fetchColumn() >= 12) { throw new \RuntimeException('Challenge limit reached'); }
         $row = ['v' => Proof::VERSION, 'suite' => Proof::SUITE, 'nonce' => bin2hex(random_bytes(32)),
-            'action' => $action, 'origin' => $origin, 'expires' => $now + 300];
+            'action' => $action, 'origin' => $origin, 'expires' => $now + $ttl];
         $stmt = $this->pdo->prepare('INSERT INTO user_zkp_challenge
             (nonce, session_hash, action, origin, expires, used) VALUES (:nonce, :binding, :action, :origin, :expires, 0)');
         $stmt->execute([':nonce' => $row['nonce'], ':binding' => $binding,

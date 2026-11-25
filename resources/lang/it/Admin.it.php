@@ -5,6 +5,23 @@ declare(strict_types=1);
  * Admin section translations — it locale.
  */
 return [
+    'admin.zkp.heading' => 'Accesso a conoscenza zero (ZKP)',
+    'admin.zkp.enable' => 'Abilita la registrazione e l’accesso con chiave',
+    'admin.zkp.origins' => 'Origini pubbliche consentite, una per riga',
+    'admin.zkp.hint' => 'Inserisci l’origine esatta del browser, come https://example.org, senza percorso o barra finale. HTTP è supportato per i servizi onion v3 e in locale.',
+    'admin.zkp.help' => 'URL della guida alle chiavi (facoltativo)',
+    'admin.zkp.ttl' => 'Durata delle nuove sfide in secondi (60–600)',
+    'admin.zkp.observed' => 'Origine rilevata da PHP per questa richiesta:',
+    'admin.zkp.status.disabled' => 'La registrazione e l’accesso con chiave sono disattivati.',
+    'admin.zkp.status.ready' => 'Questa origine è consentita e PHP può leggere entrambe le tabelle ZKP.',
+    'admin.zkp.status.origin' => 'I moduli con chiave sono nascosti su questa origine. Confronta indirizzo pubblico, protocollo e porta con le origini consentite.',
+    'admin.zkp.status.sodium' => 'I moduli con chiave sono nascosti perché questo PHP non supporta Ristretto in libsodium.',
+    'admin.zkp.status.schema' => 'PHP non può leggere lo schema ZKP. Controlla le migrazioni e i permessi del database.',
+    'admin.zkp.bad_origin' => 'Impostazioni non salvate. Inserisci un’origine supportata esatta per riga.',
+    'admin.zkp.need_origin' => 'Aggiungi almeno un’origine pubblica per abilitare ZKP.',
+    'admin.zkp.bad_ttl' => 'Usa una durata della sfida compresa tra 60 e 600 secondi.',
+    'admin.zkp.bad_help' => 'Per la guida usa un percorso locale che inizi con / o un URL HTTP(S).',
+    'admin.zkp.save_failed' => 'Impossibile salvare User.config.php. Controlla i permessi di scrittura.',
     // ---- Page meta ----------------------------------------------------------
     'WORDING_ADMIN.title'                => 'Amministrazione',
     'WORDING_ADMIN.description'          => 'Pannello di amministrazione.',

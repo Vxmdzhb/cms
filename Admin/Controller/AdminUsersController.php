@@ -24,6 +24,7 @@ use AstrX\User\UserRepository;
 use AstrX\User\UserResource;
 use AstrX\User\UserService;
 use AstrX\User\UserSession;
+use AstrX\User\Zkp\ZkpService;
 use AstrX\Kernel\AbstractController;
 use AstrX\Admin\AdminPermission;
 use AstrX\User\UserPermission;
@@ -65,6 +66,7 @@ final class AdminUsersController extends AbstractController
         private readonly UserService           $userService,
         private readonly UserSession           $session,
         private readonly AuditLogger           $audit,
+        private readonly ZkpService            $zkp,
     ) {
         parent::__construct($collector);
     }
@@ -120,6 +122,11 @@ final class AdminUsersController extends AbstractController
             return;
         }
 
+        if ($section === 'zkp' && $canConfig && $this->gate->can(AdminPermission::CONFIG_SYSTEM)) {
+            $this->saveZkp($posted);
+            return;
+        }
+
         if (in_array($section, ['userservice', 'avatar', 'identicon'], true) && $canConfig) {
             $r = match ($section) {
                 'userservice' => $this->saveUserService($posted),
@@ -132,6 +139,46 @@ final class AdminUsersController extends AbstractController
                 $this->audit->log('config.save', $section === 'identicon' ? 'Identicon.config.php' : 'User.config.php')->drainTo($this->collector);
             }
         }
+    }
+
+    /** @param array<string,mixed> $posted */
+    private function saveZkp(array $posted): void
+    {
+        $enabled = self::mBool($posted, 'zkp_enabled');
+        $lines = explode("\n", self::mStr($posted, 'zkp_origins', ''));
+        $origins = [];
+        foreach ($lines as $line) {
+            $origin = trim($line);
+            if ($origin === '') { continue; }
+            if (!ZkpService::validOrigin($origin)) {
+                $this->flash->set('error', $this->t->t('admin.zkp.bad_origin'));
+                return;
+            }
+            if (!in_array($origin, $origins, true)) { $origins[] = $origin; }
+        }
+        $ttl = filter_var($posted['zkp_ttl'] ?? null, FILTER_VALIDATE_INT);
+        $help = trim(self::mStr($posted, 'zkp_help', ''));
+        if ($enabled && $origins === []) {
+            $this->flash->set('error', $this->t->t('admin.zkp.need_origin'));
+            return;
+        }
+        if ($ttl === false || $ttl < ZkpService::MIN_TTL || $ttl > ZkpService::MAX_TTL) {
+            $this->flash->set('error', $this->t->t('admin.zkp.bad_ttl'));
+            return;
+        }
+        if (!ZkpService::validHelpUrl($help)) {
+            $this->flash->set('error', $this->t->t('admin.zkp.bad_help'));
+            return;
+        }
+        $saved = $this->writer->write('User', ['ZkpService' => [
+            'enabled' => $enabled, 'origins' => $origins, 'challenge_ttl' => $ttl, 'help_url' => $help,
+        ]])->drainTo($this->collector);
+        if (!$saved->isOk()) {
+            $this->flash->set('error', $this->t->t('admin.zkp.save_failed'));
+            return;
+        }
+        $this->flash->set('success', $this->t->t('admin.config.saved'));
+        $this->audit->log('config.save', 'User.config.php / ZkpService')->drainTo($this->collector);
     }
 
     // ── User management ───────────────────────────────────────────────────────
@@ -421,6 +468,20 @@ final class AdminUsersController extends AbstractController
         }
 
         if ($canConfig) {
+            $canSetZkp = $this->gate->can(AdminPermission::CONFIG_SYSTEM);
+            $this->ctx->set('can_set_zkp', $canSetZkp);
+            if ($canSetZkp) {
+                foreach (['heading', 'enable', 'origins', 'hint', 'help', 'ttl', 'observed'] as $label) {
+                    $this->ctx->set('zkp_label_' . $label, $this->t->t('admin.zkp.' . $label));
+                }
+                $this->ctx->set('zkp_status', $this->t->t('admin.zkp.status.' . $this->zkp->configurationStatus()));
+                $this->ctx->set('zkp_request_origin', $this->zkp->requestOrigin());
+                $this->ctx->set('cfg_zkp_enabled', $this->config->getConfigBool('ZkpService', 'enabled', false));
+                $origins = array_filter($this->config->getConfigArray('ZkpService', 'origins', []), 'is_string');
+                $this->ctx->set('cfg_zkp_origins', implode("\n", $origins));
+                $this->ctx->set('cfg_zkp_help', $this->config->getConfigString('ZkpService', 'help_url', ''));
+                $this->ctx->set('cfg_zkp_ttl', $this->config->getConfigInt('ZkpService', 'challenge_ttl', ZkpService::DEFAULT_TTL));
+            }
             $captchaOpts = [
                 ['value' => UserService::CAPTCHA_SHOW_ALWAYS,      'label' => $this->t->t('admin.config.users.captcha_always')],
                 ['value' => UserService::CAPTCHA_SHOW_NEVER,       'label' => $this->t->t('admin.config.users.captcha_never')],

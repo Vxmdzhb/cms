@@ -10,6 +10,7 @@ use AstrX\Csrf\CsrfHandler;
 use AstrX\Http\Request;
 use AstrX\Http\Response;
 use AstrX\I18n\Translator;
+use AstrX\I18n\DiagnosticRenderer;
 use AstrX\Result\DiagnosticsCollector;
 use AstrX\Result\Result;
 use AstrX\Routing\UrlGenerator;
@@ -57,6 +58,7 @@ final class RegisterController extends AbstractController
         private readonly InviteRepository      $inviteRepo,
         private readonly ModuleRegistry        $modules,
         private readonly ZkpService            $zkp,
+        private readonly DiagnosticRenderer    $diagnosticRenderer,
     ) {
         parent::__construct($collector);
     }
@@ -121,6 +123,7 @@ final class RegisterController extends AbstractController
         $csrfResult = $this->csrf->verify(self::FORM, $csrfToken);
         if (!$csrfResult->isOk()) {
             $csrfResult->drainTo($this->collector);
+            $this->ctx->set('registration_error', $this->t->t('user.register.form_expired'));
             return $this->renderForm($username, $mailbox, $email, $displayName, $inviteCode);
         }
 
@@ -152,6 +155,7 @@ final class RegisterController extends AbstractController
             $verifyResult = $this->captchaService->verify($captchaId, $captchaText);
             if (!$verifyResult->isOk()) {
                 $verifyResult->drainTo($this->collector);
+                $this->ctx->set('registration_error', $this->t->t('user.login.captcha_failed'));
                 return $this->renderForm($username, $mailbox, $email, $displayName, $inviteCode);
             }
         }
@@ -198,12 +202,18 @@ final class RegisterController extends AbstractController
 
         if (!$registerResult->isOk()) {
             $registerResult->drainTo($this->collector);
+            $message = $this->t->t('user.register.failed');
             foreach ($registerResult->diagnostics() as $diagnostic) {
-                if ($diagnostic instanceof \AstrX\User\Diagnostic\UserIdentifierUnavailableDiagnostic) {
-                    $this->ctx->set('registration_error', $this->t->t('user.register.identifier_unavailable'));
-                    break;
-                }
+                $message = match ($diagnostic->id()) {
+                    'astrx.user/identifier_unavailable' => $this->t->t('user.register.identifier_unavailable'),
+                    'astrx.user/login_failed' => $this->t->t('user.login.proof_failed'),
+                    'astrx.user/invalid_username', 'astrx.user/invalid_password', 'astrx.user/invalid_mailbox',
+                    'astrx.user/password_too_short', 'astrx.user/passwords_mismatch', 'astrx.user/invalid_date',
+                    'astrx.user/too_young', 'astrx.user/empty_fields' => $this->diagnosticRenderer->render($diagnostic),
+                    default => $message,
+                };
             }
+            $this->ctx->set('registration_error', $message);
             // Give the claimed code back so a transient register failure doesn't
             // burn it (release only un-claims a still-unattributed code).
             if ($requireInvite && $inviteCode !== '') {

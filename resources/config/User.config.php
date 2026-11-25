@@ -8,6 +8,7 @@ return [
         // Exact canonical origins, e.g. https://example.org and your v3 onion.
         // No trailing slash; never populate this dynamically from Host headers.
         'origins' => [],
+        'challenge_ttl' => 300,
         // Where "How do I get a key?" points: a page on your site (a wiki page,
         // say), or the guide in the AstrX repository. Empty hides the link.
         'help_url' => 'https://github.com/Vxmdzhb/astrx/blob/main/docs/zkp-auth.md#user-commands',
