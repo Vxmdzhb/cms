@@ -643,6 +643,13 @@ final class AdminUsersController extends AbstractController
             $this->ctx->set('btn_force_logout',     $this->t->t('admin.users.force_logout'));
             $this->ctx->set('force_logout_help',    $this->t->t('admin.users.force_logout_help'));
             $this->ctx->set('btn_cancel',           $this->t->t('admin.btn.cancel'));
+            // The delete form's mode picker and the legend under the table.
+            $this->ctx->set('deletion_mode_help',           $this->t->t('deletion_mode_help'));
+            $this->ctx->set('deletion_mode_legend_heading', $this->t->t('deletion_mode_legend_heading'));
+            foreach (['soft_redact', 'hard_redact', 'keep_visible', 'keep_suspended', 'full_delete'] as $mode) {
+                $this->ctx->set('deletion_mode_' . $mode,           $this->t->t('deletion_mode_' . $mode));
+                $this->ctx->set('deletion_mode_' . $mode . '_desc', $this->t->t('deletion_mode_' . $mode . '_desc'));
+            }
         }
 
         if ($canConfig) {
