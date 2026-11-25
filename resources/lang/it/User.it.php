@@ -146,6 +146,10 @@ return [
     'user.register.invite_required'    => 'È necessario un codice di invito per registrarsi.',
     'user.register.invite_invalid'     => 'Il codice di invito non è valido o è già stato utilizzato.',
     'user.register.success' => 'Registrazione completata! Ora puoi accedere.',
+    'user.register.success_verify' => 'Registrazione completata! Ora puoi accedere. Ti abbiamo inviato un link per verificare il tuo indirizzo email.',
+    'user.register.success_verify_first' => 'Registrazione completata! Apri il link che ti abbiamo inviato per verificare il tuo indirizzo email, poi accedi.',
+    'user.register.unsent' => 'Il tuo account è stato creato e puoi accedere, ma non è stato possibile inviare l\'email di verifica. Puoi richiedere un nuovo link dalle impostazioni.',
+    'user.register.unsent_locked' => 'Il tuo account è stato creato, ma non è stato possibile inviare l\'email di verifica e questo sito consente l\'accesso solo agli account verificati. Contatta l\'amministratore del sito per verificarlo.',
     'user.recover.sent'     => 'Se esiste un account con quel nome utente o email, ti abbiamo inviato un link.',
 
     // -------------------------------------------------------------------------

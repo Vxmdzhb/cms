@@ -230,6 +230,7 @@ final class RegisterController extends AbstractController
         // resend / mark them verified manually.
         $emailWillBeSent = $email !== ''
             && $this->userService->sendVerificationEmail();
+        $emailSent = false;
 
         if ($emailWillBeSent) {
             $tokenResult = $this->userService->generateToken(
@@ -249,6 +250,7 @@ final class RegisterController extends AbstractController
                     userHexId: $newHexId,
                 );
                 $sendResult->drainTo($this->collector);
+                $emailSent = $sendResult->isOk();
                 // Default-B: account remains created regardless of send result.
             }
         } else {
@@ -258,7 +260,17 @@ final class RegisterController extends AbstractController
             $verifyResult->drainTo($this->collector);
         }
 
-        $this->flash->set('success', $this->t->t('user.register.success'));
+        // Say what happens next. "You can now log in" was shown even when the
+        // verification email never left and the site refuses unverified logins,
+        // which left the new user locked out without a word.
+        $canLogIn = $this->userService->allowLoginNonVerifiedUsers();
+        if (!$emailWillBeSent) {
+            $this->flash->set('success', $this->t->t('user.register.success'));
+        } elseif ($emailSent) {
+            $this->flash->set('success', $this->t->t($canLogIn ? 'user.register.success_verify' : 'user.register.success_verify_first'));
+        } else {
+            $this->flash->set('warning', $this->t->t($canLogIn ? 'user.register.unsent' : 'user.register.unsent_locked'));
+        }
 
         // Redirect to login with success message via PRG
         Response::redirect($this->urlGen->toPage($this->t->t('WORDING_LOGIN')))

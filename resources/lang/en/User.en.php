@@ -144,6 +144,10 @@ return [
     // Success / info messages
     // -------------------------------------------------------------------------
     'user.register.success'            => 'Registration successful! You can now log in.',
+    'user.register.success_verify' => 'Registration successful! You can now log in. We sent a link to your email address to verify it.',
+    'user.register.success_verify_first' => 'Registration successful! Open the link we sent to your email address to verify it, then log in.',
+    'user.register.unsent' => 'Your account was created and you can log in, but the verification email could not be sent. You can ask for a new link from your settings.',
+    'user.register.unsent_locked' => 'Your account was created, but the verification email could not be sent, and this site only lets verified accounts log in. Please contact the site\'s administrator to verify it.',
     'user.register.terms_label'        => 'I accept the Terms and Conditions',
     'user.register.data_usage_label'   => 'I accept the Data Usage Policy',
     'user.register.terms_required'     => 'You must accept the Terms and Conditions to register.',
