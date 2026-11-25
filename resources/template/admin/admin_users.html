@@ -100,8 +100,7 @@
         </td>
         <td colspan="2">
             <small>{{label_password}} — {{label_password_hint}}</small><br>
-            <input form="users-update-{{id}}" type="text" name="password" class="input" value="" placeholder="argon2id hash or plain text"><br>
-            <label><input form="users-update-{{id}}" type="checkbox" name="hash_password" value="1"> {{label_hash_password}}</label>
+            <input form="users-update-{{id}}" type="text" name="password" class="input" value="" autocomplete="off"><br>
             <fieldset style="margin-top:8px;font-size:0.85em">
                 <legend>Token</legend>
                 <small>{{label_token_hash}}</small><br>

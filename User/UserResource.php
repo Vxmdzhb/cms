@@ -55,7 +55,7 @@ final readonly class UserResource
         // drops `type` from findById()'s SELECT, or the column goes NULL, the
         // old code read isset($resource->type) === false and let UserPolicy
         // abstain, so a MOD holding user.edit.any could POST
-        // action=update&user_id=<admin>&password=x&hash_password=1 and take the
+        // action=update&user_id=<admin>&password=x and take the
         // admin account over. With ADMIN as the fallback, an unreadable target
         // outranks every non-admin actor and the edit is refused instead.
         return new self($id, $type ?? UserGroup::ADMIN);

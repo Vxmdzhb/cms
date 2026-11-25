@@ -130,7 +130,7 @@ return [
     'admin.users.mailbox'          => 'Casella email',
     'admin.users.email'            => 'Email di recupero',
     'admin.users.password'         => 'Hash password',
-    'admin.users.password_hint'    => '(vuoto = mantieni attuale)',
+    'admin.users.password_hint'    => '(vuoto = mantieni attuale; un valore di password_hash() viene salvato così com\'è, il resto viene cifrato con hash)',
     'admin.users.birth'            => 'Data di nascita',
     'admin.users.login_attempts'   => 'Tentativi di accesso',
     'admin.users.last_access'      => 'Ultimo accesso',
@@ -138,7 +138,6 @@ return [
     'admin.users.token_type'       => 'Tipo token',
     'admin.users.token_used'       => 'Token usato',
     'admin.users.token_expires'    => 'Scadenza token',
-    'admin.users.hash_password' => 'Hash automatico (testo in chiaro)',
 
     // ---- Banlist ------------------------------------------------------------
     'admin.banlist.banned'             => 'Ban aggiunto.',

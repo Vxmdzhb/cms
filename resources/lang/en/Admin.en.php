@@ -395,7 +395,7 @@ return [
     'admin.users.mailbox'           => 'Mailbox',
     'admin.users.email'             => 'Recovery email',
     'admin.users.password'          => 'Password hash',
-    'admin.users.password_hint'     => '(blank = keep current)',
+    'admin.users.password_hint'     => '(blank = keep current; a password_hash() value is stored as it is, anything else is hashed)',
     'admin.users.birth'             => 'Birth date',
     'admin.users.login_attempts'    => 'Login attempts',
     'admin.users.last_access'       => 'Last access',
@@ -403,7 +403,6 @@ return [
     'admin.users.token_type'        => 'Token type',
     'admin.users.token_used'        => 'Token used',
     'admin.users.token_expires'     => 'Token expires',
-    'admin.users.hash_password'     => 'Hash automatically (plain text input)',
 
     // ---- Banlist ------------------------------------------------------------
     'admin.banlist.banned'             => 'Ban added.',
