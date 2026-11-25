@@ -302,7 +302,7 @@ final class RegisterController extends AbstractController
 
         $captchaId = ''; $captchaB64 = '';
         if ($showCaptcha) {
-            $gen = $this->captchaService->generate();
+            $gen = $this->captchaService->generateFor(self::FORM);
             $gen->drainTo($this->collector);
             if ($gen->isOk()) {
                 $captchaId  = $gen->unwrap()['id'];
