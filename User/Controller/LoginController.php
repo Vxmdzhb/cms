@@ -171,7 +171,7 @@ final class LoginController extends AbstractController
     /** @return Result<mixed> */
     private function renderForm(string $usernameValue = '', bool $showCaptcha = false): Result
     {
-        $this->zkp->present($this->ctx, $this->t, 'login');
+        $this->zkp->present($this->ctx, $this->t, 'login', $this->urlGen->toPage($this->t->t('WORDING_ZKP_CLIENT')));
         $csrfToken    = $this->csrf->generate(self::FORM);
         $pageUrl      = $this->urlGen->toPage($this->t->t('WORDING_LOGIN'));
         $prgId        = $this->prg->createId($pageUrl);

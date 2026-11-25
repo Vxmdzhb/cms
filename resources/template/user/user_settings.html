@@ -7,7 +7,7 @@
   <input type="hidden" name="prg_id" value="{{&prg.enroll_zkp}}">
   <input type="hidden" name="_csrf" value="{{&csrf.enroll_zkp}}">
   <input type="hidden" name="action" value="enroll_zkp">
-  <p><code>python3 zkp_client.py prove --key astrx.key --action enroll</code></p>
+  <p><code>python3 {{#zkp_has_client}}<a href="{{zkp_client_url}}" download="zkp_client.py">zkp_client.py</a>{{/zkp_has_client}}{{^zkp_has_client}}zkp_client.py{{/zkp_has_client}} prove --key astrx.key --action enroll</code></p>
   <label>{{zkp_challenge_label}}<br><textarea readonly rows="5" cols="64" spellcheck="false">{{zkp_challenge}}</textarea></label><br>
   <label>{{zkp_proof_label}}<br><textarea name="zkp_proof" rows="5" cols="64" maxlength="4096" spellcheck="false"></textarea></label><br>
   <label>{{zkp_current_password}} <input type="password" name="current_password" autocomplete="current-password"></label>

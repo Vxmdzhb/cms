@@ -143,8 +143,13 @@ final class ZkpService
         return Result::err(null, Diagnostics::of(new UserKeyProofRejectedDiagnostic('astrx.user/key_proof_rejected', DiagnosticLevel::NOTICE)));
     }
 
-    /** Use the existing form's PRG, CSRF and captcha; only add the alternative. */
-    public function present(TemplateVars $ctx, Translator $t, string $action): void
+    /**
+     * Use the existing form's PRG, CSRF and captcha; only add the alternative.
+     *
+     * @param string $clientUrl where zkp_client.py can be downloaded; empty
+     *                          shows the command without a link
+     */
+    public function present(TemplateVars $ctx, Translator $t, string $action, string $clientUrl = ''): void
     {
         // AstrX resolves partial tags through the context, not literal filenames.
         $ctx->set('zkp_auth', 'partials/zkp_auth');
@@ -166,6 +171,8 @@ final class ZkpService
             }
             $ctx->set('zkp_summary', $t->t($action === 'register' ? 'user.zkp.key_register' : 'user.zkp.key_login'));
             $ctx->set('zkp_action', $action);
+            $ctx->set('zkp_has_client', $clientUrl !== '');
+            $ctx->set('zkp_client_url', $clientUrl);
             $ctx->set('zkp_has_help', $this->helpUrl !== '');
             $ctx->set('zkp_help_url', $this->helpUrl);
         } catch (\PDOException | \RuntimeException) {
