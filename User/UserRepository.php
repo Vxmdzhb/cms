@@ -317,7 +317,7 @@ final class UserRepository
             }
             $ownsTransaction = true;
             $epoch = $this->pdo->prepare("UPDATE user SET session_epoch = session_epoch + 1
-                WHERE id = UNHEX(:id) AND deleted = 0 AND (deletion_mode = 'none' OR deletion_mode = '')");
+                WHERE id = UNHEX(:id) AND deleted = 0 AND (deletion_mode IS NULL OR deletion_mode IN ('none', ''))");
             $epoch->execute([':id' => $hexId]);
             if ($epoch->rowCount() !== 1) { throw new PDOException('Account is not active'); }
             $remove = $this->pdo->prepare('DELETE FROM user_zkp_key WHERE user_id = UNHEX(:id)');
