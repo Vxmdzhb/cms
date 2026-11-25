@@ -149,8 +149,6 @@ return [
     'admin.config.field.sid_bytes'                => 'Session ID bytes',
     'admin.config.field.session_id_regex'         => 'Session ID regex',
     'admin.config.field.encrypt'                  => 'Encrypt session data',
-    'admin.config.field.cipher'                   => 'Cipher',
-    'admin.config.field.hmac_algo'                => 'HMAC algorithm',
     'admin.config.field.prg_token_key'            => 'PRG token key',
     'admin.config.field.prg_token_regex'          => 'PRG token regex',
     'admin.config.field.max_sid_retries'          => 'Max session ID retries',
@@ -566,8 +564,6 @@ return [
     // System config
     'admin.config.system.invalid_session_id_regex'   => 'Session ID regex is invalid — would crash session_start. Save aborted.',
     'admin.config.system.invalid_prg_token_regex'    => 'PRG token regex is invalid. Save aborted.',
-    'admin.config.system.unknown_cipher'             => 'Cipher is not available in OpenSSL on this system. Save aborted.',
-    'admin.config.system.unknown_hmac_algo'          => 'HMAC algorithm is not supported by PHP. Save aborted.',
     'admin.config.system.no_languages'               => 'You must specify at least one available language.',
     'admin.config.system.default_language_unavailable' => 'Default language must be one of the available languages.',
     'admin.config.system.default_page_empty'         => 'Default page cannot be empty.',

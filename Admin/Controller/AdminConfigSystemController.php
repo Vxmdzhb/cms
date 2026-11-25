@@ -216,13 +216,12 @@ final class AdminConfigSystemController extends AbstractController
      */
     private function saveSession(array $p)
     : Result {
-        // Validate before write — a bad regex or unknown
-        // cipher would crash the next request during session_start and lock
-        // the admin out with no way back except editing the config file.
+        // Validate before write — a bad regex would crash the next request
+        // during session_start and lock the admin out with no way back except
+        // editing the config file. The cipher (AES-256-CTR) and HMAC (SHA-256)
+        // are fixed: changing them would make every stored session unreadable.
         $sessionIdRegex = trim(self::mStr($p, 'session_id_regex', ''));
         $prgTokenRegex  = trim(self::mStr($p, 'prg_token_regex', ''));
-        $cipher         = trim(self::mStr($p, 'cipher', 'aes-256-ctr'));
-        $hmacAlgo       = trim(self::mStr($p, 'hmac_algo', 'sha256'));
 
         if ($sessionIdRegex !== '' && @preg_match($sessionIdRegex, '') === false) {
             $this->flash->set('error',
@@ -234,16 +233,6 @@ final class AdminConfigSystemController extends AbstractController
                 $this->t->t('admin.config.system.invalid_prg_token_regex'));
             return Result::ok(false);
         }
-        if (!in_array($cipher, openssl_get_cipher_methods(true), true)) {
-            $this->flash->set('error',
-                $this->t->t('admin.config.system.unknown_cipher'));
-            return Result::ok(false);
-        }
-        if (!in_array($hmacAlgo, hash_hmac_algos(), true)) {
-            $this->flash->set('error',
-                $this->t->t('admin.config.system.unknown_hmac_algo'));
-            return Result::ok(false);
-        }
 
         return $this->writer->write('Session', [
             'Session' => [
@@ -251,8 +240,6 @@ final class AdminConfigSystemController extends AbstractController
                 'sid_bytes'        => max(32, self::mInt($p, 'sid_bytes', 128)),
                 'session_id_regex' => $sessionIdRegex,
                 'encrypt'          => self::mBool($p, 'encrypt'),
-                'cipher'           => $cipher,
-                'hmac_algo'        => $hmacAlgo,
                 'prg_token_key'    => trim(self::mStr($p, 'prg_token_key', 'prg')),
                 'prg_token_regex'  => $prgTokenRegex,
                 'max_sid_retries'  => max(1, self::mInt($p, 'max_sid_retries', 8)),
@@ -573,22 +560,6 @@ final class AdminConfigSystemController extends AbstractController
                 'Session',
                 'encrypt',
                 true
-            )
-        );
-        $this->ctx->set(
-            'cfg_cipher',
-            $this->config->getConfigString(
-                'Session',
-                'cipher',
-                'aes-256-ctr'
-            )
-        );
-        $this->ctx->set(
-            'cfg_hmac_algo',
-            $this->config->getConfigString(
-                'Session',
-                'hmac_algo',
-                'sha256'
             )
         );
         $this->ctx->set(
@@ -922,14 +893,6 @@ final class AdminConfigSystemController extends AbstractController
         $this->ctx->set(
             'label_encrypt',
             $this->t->t('admin.config.field.encrypt')
-        );
-        $this->ctx->set(
-            'label_cipher',
-            $this->t->t('admin.config.field.cipher')
-        );
-        $this->ctx->set(
-            'label_hmac_algo',
-            $this->t->t('admin.config.field.hmac_algo')
         );
         $this->ctx->set(
             'label_prg_token_key',

@@ -283,8 +283,6 @@ return [
 
     'admin.config.system.invalid_session_id_regex'     => 'Regex ID sessione non valida — bloccherebbe l\'avvio della sessione. Salvataggio annullato.',
     'admin.config.system.invalid_prg_token_regex'      => 'Regex token PRG non valida. Salvataggio annullato.',
-    'admin.config.system.unknown_cipher'               => 'Cipher non disponibile in OpenSSL su questo sistema. Salvataggio annullato.',
-    'admin.config.system.unknown_hmac_algo'            => 'Algoritmo HMAC non supportato da PHP. Salvataggio annullato.',
     'admin.config.system.no_languages'                 => 'Devi specificare almeno una lingua disponibile.',
     'admin.config.system.default_language_unavailable' => 'La lingua predefinita deve essere tra quelle disponibili.',
     'admin.config.system.default_page_empty'           => 'La pagina predefinita non può essere vuota.',
@@ -391,8 +389,6 @@ return [
     'admin.config.field.sid_bytes'                => 'Byte ID sessione',
     'admin.config.field.session_id_regex'         => 'Regex ID sessione',
     'admin.config.field.encrypt'                  => 'Cifra i dati della sessione',
-    'admin.config.field.cipher'                   => 'Cifrario',
-    'admin.config.field.hmac_algo'                => 'Algoritmo HMAC',
     'admin.config.field.prg_token_key'            => 'Chiave token PRG',
     'admin.config.field.prg_token_regex'          => 'Regex token PRG',
     'admin.config.field.max_sid_retries'          => 'Max tentativi ID sessione',
