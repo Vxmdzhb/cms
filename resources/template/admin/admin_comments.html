@@ -3,6 +3,7 @@
 {{! ── Moderation (requires ADMIN_COMMENTS) ────────────────────────────── }}
 {{#can_moderate}}
 <form method="GET">
+    {{#route_fields}}<input type="hidden" name="{{name}}" value="{{value}}">{{/route_fields}}
     {{&sid_input}}
     <p>
         <label>{{label_filter}} page ID:
@@ -11,15 +12,16 @@
         <label><input type="checkbox" name="flagged" value="1"{{#filter_flagged}} checked{{/filter_flagged}}> {{label_flagged}} only</label>
         <label>{{label_show_hidden}}:
             <select name="show_hidden" class="input">
-                <option value="">All</option>
-                <option value="0"{{#filter_show_hidden}} {{/filter_show_hidden}}>{{label_visible_only}}</option>
-                <option value="1"{{#filter_show_hidden}} {{/filter_show_hidden}}>{{label_hidden_only}}</option>
+                <option value=""{{#filter_show_hidden_any}} selected{{/filter_show_hidden_any}}>All</option>
+                <option value="0"{{#filter_show_hidden_visible}} selected{{/filter_show_hidden_visible}}>{{label_visible_only}}</option>
+                <option value="1"{{#filter_show_hidden_hidden}} selected{{/filter_show_hidden_hidden}}>{{label_hidden_only}}</option>
             </select>
         </label>
         <input type="submit" value="{{btn_filter}}" class="input">
     </p>
 </form>
 
+<div class="table-scroll" tabindex="0" role="region" aria-label="{{table_scroll_label}}">
 <table>
     <thead><tr>
         <th>{{label_id}}</th>
@@ -48,7 +50,7 @@
     <td><input type="checkbox" disabled {{#hidden}}checked{{/hidden}}></td>
     <td><input type="checkbox" disabled {{#flagged}}checked{{/flagged}}></td>
     <td>
-        <a href="{{base_url}}?edit={{id}}" class="input">{{btn_edit}}</a>
+        <a href="{{edit_url_prefix}}{{id}}" class="input">{{btn_edit}}</a>
         <form method="POST" style="display:inline">
             <input type="hidden" name="prg_id"   value="{{prg_id}}">
             <input type="hidden" name="_csrf"     value="{{csrf_token}}">
@@ -83,37 +85,40 @@
 
     {{#editing}}
     <tr>
-        <form method="POST">
-            <input type="hidden" name="prg_id"   value="{{prg_id}}">
-            <input type="hidden" name="_csrf"     value="{{csrf_token}}">
-            <input type="hidden" name="section"   value="moderation">
-            <input type="hidden" name="action"    value="update">
-            <input type="hidden" name="id"        value="{{id}}">
-            <td>{{id}}</td>
-            <td>{{page_id}}</td>
-            <td><code>{{user_id}}</code></td>
-            <td>
-                <small>{{label_name}}</small><br>
-                <input type="text" name="name" class="input" value="{{name}}"><br>
-                <small>{{label_email}}</small><br>
-                <input type="text" name="email" class="input" value="{{email}}">
-            </td>
-            <td><input type="number" name="reply_to" class="input" value="{{reply_to}}" style="width:5em" min="0" class="input"></td>
-            <td><textarea name="content" rows="5" class="input" style="width:100%">{{content}}</textarea></td>
-            <td>{{created_at}}</td>
-            <td><input type="checkbox" name="hidden"  value="1"{{#hidden}}  checked{{/hidden}}></td>
-            <td><input type="checkbox" name="flagged" value="1"{{#flagged}} checked{{/flagged}}></td>
-            <td>
-                <input type="submit" value="{{btn_update}}" class="input"><br>
-                <a href="{{base_url}}" class="input">{{btn_cancel}}</a>
-            </td>
-        </form>
+        <td>
+            <form method="POST" id="comments-update-{{id}}">
+                <input type="hidden" name="prg_id"   value="{{prg_id}}">
+                <input type="hidden" name="_csrf"     value="{{csrf_token}}">
+                <input type="hidden" name="section"   value="moderation">
+                <input type="hidden" name="action"    value="update">
+                <input type="hidden" name="id"        value="{{id}}">
+            </form>
+            {{id}}
+        </td>
+        <td>{{page_id}}</td>
+        <td><code>{{user_id}}</code></td>
+        <td>
+            <small>{{label_name}}</small><br>
+            <input form="comments-update-{{id}}" type="text" name="name" class="input" value="{{name}}"><br>
+            <small>{{label_email}}</small><br>
+            <input form="comments-update-{{id}}" type="text" name="email" class="input" value="{{email}}">
+        </td>
+        <td><input form="comments-update-{{id}}" type="number" name="reply_to" class="input" value="{{reply_to}}" style="width:5em" min="0" class="input"></td>
+        <td><textarea form="comments-update-{{id}}" name="content" rows="5" class="input" style="width:100%">{{content}}</textarea></td>
+        <td>{{created_at}}</td>
+        <td><input form="comments-update-{{id}}" type="checkbox" name="hidden"  value="1"{{#hidden}}  checked{{/hidden}}></td>
+        <td><input form="comments-update-{{id}}" type="checkbox" name="flagged" value="1"{{#flagged}} checked{{/flagged}}></td>
+        <td>
+            <input form="comments-update-{{id}}" type="submit" value="{{btn_update}}" class="input"><br>
+            <a href="{{base_url}}" class="input">{{btn_cancel}}</a>
+        </td>
     </tr>
     {{/editing}}
     {{/comment_list}}
 
     </tbody>
 </table>
+</div>
 {{/can_moderate}}
 
 {{! ── Comment Service Config (requires ADMIN_CONFIG_COMMENTS) ─────────── }}

@@ -390,6 +390,7 @@ final class AdminUsersController extends AbstractController
         $this->ctx->set('can_manage',  $canManage);
         $this->ctx->set('can_config',  $canConfig);
         $this->ctx->set('base_url',    $selfUrl);
+        $this->ctx->set('edit_url_prefix', $selfUrl . (str_contains($selfUrl, '?') ? '&' : '?') . 'edit=');
         $this->ctx->set('csrf_token',  $csrfToken);
         $this->ctx->set('prg_id',      $prgId);
 
@@ -441,7 +442,7 @@ final class AdminUsersController extends AbstractController
             $this->ctx->set('cfg_allow_register',                 $this->config->getConfigBool('UserService', 'allow_register',                 true));
             $this->ctx->set('cfg_allow_login_non_verified_users', $this->config->getConfigBool('UserService', 'allow_login_non_verified_users', true));
             $this->ctx->set('cfg_require_email',                  $this->config->getConfigBool('UserService', 'require_email',                  true));
-            $this->ctx->set('cfg_require_recovery_email',         $this->config->getConfigBool('UserService', 'require_recovery_email',         true));
+            $this->ctx->set('cfg_require_recovery_email',         $this->config->getConfigBool('UserService', 'require_recovery_email',         false));
             // Email transactional flags
             $this->ctx->set('cfg_send_verification_email',        $this->config->getConfigBool('UserService', 'send_verification_email',        true));
             $this->ctx->set('cfg_send_password_reset_email',      $this->config->getConfigBool('UserService', 'send_password_reset_email',      true));

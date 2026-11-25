@@ -105,6 +105,7 @@ final class AdminPagesController extends AbstractController
         $this->ctx->set('prg_id',     $prgId);
         $this->ctx->set('page_list',  $pageList);
         $this->ctx->set('base_url',   $selfUrl);
+        $this->ctx->set('edit_url_prefix', $selfUrl . (str_contains($selfUrl, '?') ? '&' : '?') . 'edit=');
         $this->setI18n();
         return $this->ok();
     }

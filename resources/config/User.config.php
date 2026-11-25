@@ -17,7 +17,7 @@ return [
         'allow_register' => true,
         'allow_login_non_verified_users' => true,
         'require_email' => true,
-        'require_recovery_email' => true,
+        'require_recovery_email' => false,
         // Verification email policy:
         //   true  → after registration, a verification email is sent. User
         //           starts with verified=0 and clicks the link to verify.

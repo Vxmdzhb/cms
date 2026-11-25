@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace AstrX\Page;
 
+use AstrX\I18n\Translator;
+
 final class Page
 {
     public function __construct(
@@ -27,4 +29,9 @@ final class Page
         /** Optional module that owns this page ('' = core / always-on). */
         public readonly string $module = '',
     ) {}
+
+    public function resolvedUrlId(Translator $translator): string
+    {
+        return $this->i18n ? $translator->t($this->urlId, fallback: $this->urlId) : $this->urlId;
+    }
 }

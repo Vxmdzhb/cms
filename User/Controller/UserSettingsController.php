@@ -359,7 +359,7 @@ final class UserSettingsController extends AbstractController
         foreach (['settings', 'settings_hint', 'current_password', 'save', 'revoke'] as $label) {
             $this->ctx->set('zkp_' . $label, $this->t->t('user.zkp.' . $label));
         }
-        $avatarUrl       = $this->urlGen->toPage('avatar') . '?uid=' . $hexId;
+        $avatarUrl       = $this->urlGen->toPage('avatar', ['uid' => $hexId]);
         // Hide the old-password field only for a fresh recovery grant tied to this
         // session, matching the check in change_password; otherwise the field could
         // be hidden while the server still asks for it.

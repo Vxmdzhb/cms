@@ -173,7 +173,7 @@ final class LoginController extends AbstractController
     {
         $this->zkp->present($this->ctx, $this->t, 'login');
         $csrfToken    = $this->csrf->generate(self::FORM);
-        $pageUrl      = $this->request->uri()->path();
+        $pageUrl      = $this->urlGen->toPage($this->t->t('WORDING_LOGIN'));
         $prgId        = $this->prg->createId($pageUrl);
 
         // Captcha for initial render (ALWAYS policy or passed explicitly).
@@ -211,8 +211,7 @@ final class LoginController extends AbstractController
         // empty in this implementation. The boolean dodge keeps the lookup at
         // the parent context where the URL actually lives.
         $captchaFrameUrl = $captchaId !== ''
-            ? $this->urlGen->toPage($this->t->t('WORDING_CAPTCHA_FRAME'))
-                . '?cid=' . $captchaId
+            ? $this->urlGen->toPage($this->t->t('WORDING_CAPTCHA_FRAME'), ['cid' => $captchaId])
             : '';
         $this->ctx->set('captcha_frame_url', $captchaFrameUrl);
         // Reload button (iframe) is opt-in; off = a plain single-image captcha.

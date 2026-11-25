@@ -7,6 +7,8 @@ use AstrX\Admin\AuditLogger;
 use AstrX\Auth\Gate;
 use AstrX\Csrf\CsrfHandler;
 use AstrX\Http\Request;
+use AstrX\Routing\UrlGenerator;
+use AstrX\Page\Page;
 use AstrX\Http\Response;
 use AstrX\I18n\Translator;
 use AstrX\Result\DiagnosticsCollector;
@@ -34,6 +36,8 @@ final class AdminRetentionController extends AbstractController
     public function __construct(
         DiagnosticsCollector                    $collector,
         private readonly TemplateVars $ctx,
+        private readonly Page                   $page,
+        private readonly UrlGenerator           $urlGen,
         private readonly Request                $request,
         private readonly Gate                   $gate,
         private readonly Translator             $t,
@@ -56,7 +60,7 @@ final class AdminRetentionController extends AbstractController
             return $this->ok();
         }
 
-        $selfUrl  = $this->request->uri()->path();
+        $selfUrl  = $this->urlGen->toPage($this->page->resolvedUrlId($this->t));
         $prgToken = $this->request->query()->get($this->prg->tokenQueryKey());
         if (is_string($prgToken) && $prgToken !== '') {
             $this->processPost($this->prg->pull($prgToken) ?? []);

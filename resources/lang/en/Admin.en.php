@@ -538,6 +538,7 @@ return [
     'admin.banlist.route_in_use'        => 'Cannot delete: bans still reference this route. Reassign them first.',
 
     // Navbar
+    'admin.navbar.page_required' => 'Choose a target page for this internal link.',
     'admin.navbar.name_required'        => 'Entry name is required.',
 
     // Pages

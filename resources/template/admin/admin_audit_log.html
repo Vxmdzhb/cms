@@ -6,6 +6,7 @@
 
 {{! ── Filter form ──────────────────────────────────────────────────────── }}
 <form method="GET" action="{{filter_url}}">
+  {{#route_fields}}<input type="hidden" name="{{name}}" value="{{value}}">{{/route_fields}}
   {{&sid_input}}
   <table>
     <tr>
@@ -25,6 +26,7 @@
 
 {{^audit_rows}}<p><em>{{label_no_entries}}</em></p>{{/audit_rows}}
 {{#has_audit}}
+<div class="table-scroll" tabindex="0" role="region" aria-label="{{table_scroll_label}}">
 <table class="table">
   <thead>
   <tr>
@@ -49,6 +51,7 @@
   {{/audit_rows}}
   </tbody>
 </table>
+</div>
 {{/has_audit}}
 
 <p>

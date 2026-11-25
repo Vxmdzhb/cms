@@ -277,6 +277,11 @@ final class UserRepository
             return Result::ok(true);
         } catch (PDOException $e) {
             if ($ownsTransaction && $this->pdo->inTransaction()) { $this->pdo->rollBack(); }
+            if (($e->errorInfo[1] ?? null) === 1062) {
+                return Result::err(null, Diagnostics::of(new \AstrX\User\Diagnostic\UserIdentifierUnavailableDiagnostic(
+                    'astrx.user/identifier_unavailable', DiagnosticLevel::NOTICE
+                )));
+            }
             return $this->dbErr($e);
         }
     }
@@ -392,7 +397,8 @@ final class UserRepository
     {
         return $this->exec(
             'UPDATE `user`
-                SET `totp_secret` = :s, `totp_enabled` = :e, `totp_recovery` = :r
+                SET `totp_last_step` = CASE WHEN `totp_enabled` = 0 THEN 0 ELSE `totp_last_step` END,
+                    `totp_secret` = :s, `totp_enabled` = :e, `totp_recovery` = :r
               WHERE `id` = UNHEX(:id)',
             [':s' => $secret, ':e' => $enabled ? 1 : 0, ':r' => $recoveryJson, ':id' => $hexId],
         );

@@ -4,6 +4,7 @@
 
     {{#comments_any}}
     <form method="GET" action="{{comments_filter_action}}">
+        {{#route_fields}}<input type="hidden" name="{{name}}" value="{{value}}">{{/route_fields}}
         {{&sid_input}}
         {{&comments_base_query_inputs}}
         <p>

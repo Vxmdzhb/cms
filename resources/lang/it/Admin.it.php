@@ -257,6 +257,7 @@ return [
     'admin.banlist.route_exists'        => 'Una rotta con questa chiave esiste già.',
     'admin.banlist.route_in_use'        => 'Impossibile eliminare: alcuni ban usano ancora questa rotta. Riassegnali prima.',
 
+    'admin.navbar.page_required' => 'Scegli una pagina di destinazione per questo collegamento interno.',
     'admin.navbar.name_required'        => 'Il nome della voce è obbligatorio.',
 
     'admin.pages.has_children'          => 'Impossibile eliminare: questa pagina ha pagine figlie. Eliminale o riassegnale prima.',

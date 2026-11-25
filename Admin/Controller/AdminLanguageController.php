@@ -137,7 +137,7 @@ final class AdminLanguageController extends AbstractController
         } else {
             $this->flash->set('error', $this->t->t('admin.lang.save_failed'));
         }
-        return '?domain=' . rawurlencode($domain) . '&lang=' . rawurlencode($lang);
+        return '?domain=' . rawurlencode($domain) . '&edit_lang=' . rawurlencode($lang);
     }
 
     /** @param array<string,mixed> $posted */
@@ -275,7 +275,7 @@ final class AdminLanguageController extends AbstractController
     {
         $primary = $this->catalog->primary();
         $domain  = self::queryStr($this->request, 'domain', '');
-        $lang    = self::queryStr($this->request, 'lang', '');
+        $lang    = self::queryStr($this->request, 'edit_lang', self::queryStr($this->request, 'lang', ''));
 
         $validDomain = $domain !== '' && in_array($domain, $this->catalog->domains(), true);
         // The language you're working in follows you across domains.
@@ -319,7 +319,7 @@ final class AdminLanguageController extends AbstractController
      */
     private function buildDomainNav(string $selfUrl, string $currentDomain, string $currentLang): void
     {
-        $suffix  = '&lang=' . rawurlencode($currentLang);
+        $suffix  = '&edit_lang=' . rawurlencode($currentLang);
         $domains = $this->catalog->domains();
         usort($domains, static fn(string $a, string $b): int => strcmp(strtolower($a), strtolower($b)));
 
@@ -327,7 +327,7 @@ final class AdminLanguageController extends AbstractController
         foreach ($domains as $d) {
             $nav[] = [
                 'label'    => ucfirst($d),
-                'url'      => $selfUrl . '?domain=' . rawurlencode($d) . $suffix,
+                'url'      => $selfUrl . (str_contains($selfUrl, '?') ? '&' : '?') . 'domain=' . rawurlencode($d) . $suffix,
                 'd_active' => $d === $currentDomain,
             ];
         }
@@ -376,7 +376,7 @@ final class AdminLanguageController extends AbstractController
         foreach ($this->catalog->locales() as $l) {
             $tabs[] = [
                 'code'     => $l,
-                'url'      => $selfUrl . '?domain=' . rawurlencode($domain) . '&lang=' . rawurlencode($l),
+                'url'      => $selfUrl . (str_contains($selfUrl, '?') ? '&' : '?') . 'domain=' . rawurlencode($domain) . '&edit_lang=' . rawurlencode($l),
                 'l_active' => $l === $lang,
             ];
         }

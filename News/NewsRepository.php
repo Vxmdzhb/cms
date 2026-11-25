@@ -99,9 +99,8 @@ final class NewsRepository
             );
             $stmt->bindValue(':lim', $limit, \PDO::PARAM_INT);
             $stmt->execute();
-            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             /** @var list<array{id:int,title:string,content:string,created_ts:int}> $typed */
-            $typed = is_array($rows) ? $rows : [];
+            $typed = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             return Result::ok($typed);
         } catch (\PDOException $e) {
             return Result::err([], $this->pdoDiagnostic($e));

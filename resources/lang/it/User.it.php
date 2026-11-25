@@ -8,6 +8,7 @@ declare(strict_types=1);
  * Le chiavi .title / .description evitano i notice MissingTranslation.
  */
 return [
+    'user.register.identifier_unavailable' => 'Il nome utente o uno dei dati inseriti è già in uso. Prova con dati diversi.',
     'user.zkp.key_login' => 'Oppure accedi con una chiave',
     'user.zkp.key_register' => 'Oppure registrati con una chiave',
     'user.zkp.instructions' => 'Esegui questo comando con la tua chiave, incolla la richiesta, poi incolla la prova che stampa.',

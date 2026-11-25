@@ -12,6 +12,7 @@ declare(strict_types=1);
  * Values match the page_meta DB fallbacks; override freely.
  */
 return [
+    'user.register.identifier_unavailable' => 'That username or account information is already in use. Please try different details.',
     'user.zkp.key_login' => 'Or log in with a key',
     'user.zkp.key_register' => 'Or sign up with a key',
     'user.zkp.instructions' => 'Run this with your key, paste the challenge, then paste the proof it prints.',

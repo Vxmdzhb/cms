@@ -5,8 +5,9 @@ namespace AstrX\Admin\Controller;
 
 use AstrX\Admin\AuditLogger;
 use AstrX\Auth\Gate;
-use AstrX\Config\Config;
 use AstrX\Http\Request;
+use AstrX\Routing\UrlGenerator;
+use AstrX\Page\Page;
 use AstrX\I18n\Translator;
 use AstrX\Result\DiagnosticsCollector;
 use AstrX\Result\Result;
@@ -21,7 +22,7 @@ use AstrX\Admin\AdminPermission;
  * Read-only, newest first, with simple filters. Requires ADMIN_ACCESS.
  *
  * GET parameters:
- *   page=N        pagination
+ *   pn=N          pagination
  *   user=<name>   filter by username
  *   action=<slug> filter by action prefix
  */
@@ -32,11 +33,12 @@ final class AdminAuditLogController extends AbstractController
     public function __construct(
         DiagnosticsCollector                   $collector,
         private readonly TemplateVars $ctx,
+        private readonly Page                  $page,
+        private readonly UrlGenerator          $urlGen,
         private readonly Request               $request,
         private readonly Gate                  $gate,
         private readonly PDO                   $pdo,
         private readonly Translator            $t,
-        private readonly Config                $config,
         private readonly AuditLogger           $audit,
     ) {
         parent::__construct($collector);
@@ -59,16 +61,20 @@ final class AdminAuditLogController extends AbstractController
         $this->ctx->set('chain_checked',   $chain['checked']);
         $this->ctx->set('chain_broken_id', $chain['broken_id']);
 
-        $page       = max(1, self::queryInt($this->request, 'page', 1));
+        $slug = $this->page->resolvedUrlId($this->t);
+        $page       = max(1, self::queryInt($this->request, 'pn', self::queryInt($this->request, 'page', 1)));
         $filterUser = trim((is_scalar($vuser = $this->request->query()->get('user') ?? '') ? (string)$vuser : ''));
         $filterAct  = trim((is_scalar($vaction = $this->request->query()->get('action') ?? '') ? (string)$vaction : ''));
 
         [$rows, $total] = $this->fetchRows($page, $filterUser, $filterAct);
 
         $pages = max(1, (int) ceil($total / self::PER_PAGE));
-        $page  = min($page, $pages);
+        if ($page > $pages) {
+            $page = $pages;
+            [$rows] = $this->fetchRows($page, $filterUser, $filterAct);
+        }
 
-        $selfUrl = $this->request->uri()->path();
+        $filters = array_filter(['user' => $filterUser, 'action' => $filterAct], static fn(string $v): bool => $v !== '');
 
         $this->ctx->set('audit_rows',    $rows);
         $this->ctx->set('has_audit',     $rows !== []);
@@ -80,31 +86,12 @@ final class AdminAuditLogController extends AbstractController
         $this->ctx->set('filter_action', $filterAct);
         $this->ctx->set('has_prev',      $page > 1);
         $this->ctx->set('has_next',      $page < $pages);
-        $this->ctx->set('prev_url',      $this->appendSid($selfUrl . '?' . http_build_query(array_filter(['page' => $page - 1, 'user' => $filterUser, 'action' => $filterAct]))));
-        $this->ctx->set('next_url',      $this->appendSid($selfUrl . '?' . http_build_query(array_filter(['page' => $page + 1, 'user' => $filterUser, 'action' => $filterAct]))));
-        $this->ctx->set('filter_url',    $this->appendSid($selfUrl));
+        $this->ctx->set('prev_url',      $this->urlGen->toPage($slug, ['pn' => $page - 1] + $filters));
+        $this->ctx->set('next_url',      $this->urlGen->toPage($slug, ['pn' => $page + 1] + $filters));
+        $this->ctx->set('filter_url',    $this->urlGen->toPage($slug));
         $this->setI18n();
 
         return $this->ok();
-    }
-
-    /**
-     * Append the cookieless query-mode session id to a raw self-URL so the filter
-     * and pagination links keep the session. Rewrite mode carries the sid in the
-     * path already; cookie mode has nothing to add — so this is a no-op unless
-     * cookies are OFF and URL-rewrite is OFF (the sid rides as a query parameter).
-     */
-    private function appendSid(string $url): string
-    {
-        if (!$this->config->getConfigBool('Session', 'use_cookies', true)
-            && !$this->config->getConfigBool('Routing', 'url_rewrite', true)) {
-            $sk  = $this->config->getConfigString('Routing', 'session_key', 'sid');
-            $sid = session_id();
-            if (is_string($sid) && $sid !== '') {
-                $url .= (str_contains($url, '?') ? '&' : '?') . rawurlencode($sk) . '=' . rawurlencode($sid);
-            }
-        }
-        return $url;
     }
 
     /** @return array{0: list<array<string,string>>, 1: int} */

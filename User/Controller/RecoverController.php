@@ -235,7 +235,7 @@ final class RecoverController extends AbstractController
     private function renderResetForm(): Result
     {
         $csrfToken = $this->csrf->generate(self::RESET_FORM);
-        $pageUrl   = $this->request->uri()->path();
+        $pageUrl   = $this->urlGen->toPage($this->t->t('WORDING_RECOVER'));
         $prgId     = $this->prg->createId($pageUrl);
 
         $this->ctx->set('reset_mode',           true);
@@ -258,7 +258,7 @@ final class RecoverController extends AbstractController
         $this->ctx->set('reset_mode', false);
 
         $csrfToken = $this->csrf->generate(self::FORM);
-        $pageUrl   = $this->request->uri()->path();
+        $pageUrl   = $this->urlGen->toPage($this->t->t('WORDING_RECOVER'));
         $prgId     = $this->prg->createId($pageUrl);
 
         $captchaResult = $this->userService->shouldShowCaptcha(self::FORM);

@@ -59,7 +59,7 @@ final class TwofactorController extends AbstractController
         }
 
         $uid     = $this->session->userId();
-        $selfUrl = $this->request->uri()->path();
+        $selfUrl = $this->urlGen->toPage($this->t->t('WORDING_TWOFACTOR'));
 
         $prgToken = $this->request->query()->get($this->prg->tokenQueryKey());
         if (is_string($prgToken) && $prgToken !== '') {

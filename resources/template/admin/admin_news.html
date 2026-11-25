@@ -18,7 +18,7 @@
     <td>{{created_at}}</td>
     <td><input type="checkbox" disabled {{#hidden}}checked{{/hidden}}></td>
     <td>
-        <a href="{{base_url}}?edit={{id}}" class="input">{{btn_edit}}</a>
+        <a href="{{edit_url_prefix}}{{id}}" class="input">{{btn_edit}}</a>
         <form method="POST" style="display:inline">
             <input type="hidden" name="prg_id" value="{{prg_id}}">
             <input type="hidden" name="_csrf"  value="{{csrf_token}}">
@@ -32,40 +32,44 @@
     {{/editing}}
     {{#editing}}
     <tr>
-        <form method="POST">
-            <input type="hidden" name="prg_id" value="{{prg_id}}">
-            <input type="hidden" name="_csrf"  value="{{csrf_token}}">
-            <input type="hidden" name="action" value="update">
-            <input type="hidden" name="id"     value="{{id}}">
-            <td>{{id}}</td>
-            <td colspan="2">
-                <input type="text" name="title" class="input" value="{{title}}"><br>
-                <textarea name="content" rows="10" class="input" style="width:100%">{{content}}</textarea>
-            </td>
-            <td><input type="checkbox" name="hidden" value="1"{{#hidden}} checked{{/hidden}}></td>
-            <td>
-                <input type="submit" value="{{btn_update}}" class="input"><br>
-                <a href="{{base_url}}">{{btn_cancel}}</a>
-            </td>
-        </form>
+        <td>
+            <form method="POST" id="news-update-{{id}}">
+                <input type="hidden" name="prg_id" value="{{prg_id}}">
+                <input type="hidden" name="_csrf"  value="{{csrf_token}}">
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="id"     value="{{id}}">
+            </form>
+            {{id}}
+        </td>
+        <td colspan="2">
+            <input form="news-update-{{id}}" type="text" name="title" class="input" value="{{title}}"><br>
+            <textarea form="news-update-{{id}}" name="content" rows="10" class="input" style="width:100%">{{content}}</textarea>
+        </td>
+        <td><input form="news-update-{{id}}" type="checkbox" name="hidden" value="1"{{#hidden}} checked{{/hidden}}></td>
+        <td>
+            <input form="news-update-{{id}}" type="submit" value="{{btn_update}}" class="input"><br>
+            <a href="{{base_url}}">{{btn_cancel}}</a>
+        </td>
     </tr>
     {{/editing}}
     {{/news_list}}
 
     {{! Add row }}
     <tr>
-        <form method="POST">
-            <input type="hidden" name="prg_id" value="{{prg_id}}">
-            <input type="hidden" name="_csrf"  value="{{csrf_token}}">
-            <input type="hidden" name="action" value="create">
-            <td><em>new</em></td>
-            <td colspan="2">
-                <input type="text" name="title" class="input" placeholder="{{label_title}}"><br>
-                <textarea name="content" rows="5" class="input" style="width:100%"></textarea>
-            </td>
-            <td><input type="checkbox" name="hidden" value="1"></td>
-            <td><input type="submit" value="{{btn_create}}" class="input"></td>
-        </form>
+        <td>
+            <form method="POST" id="news-create">
+                <input type="hidden" name="prg_id" value="{{prg_id}}">
+                <input type="hidden" name="_csrf"  value="{{csrf_token}}">
+                <input type="hidden" name="action" value="create">
+            </form>
+            <em>new</em>
+        </td>
+        <td colspan="2">
+            <input form="news-create" type="text" name="title" class="input" placeholder="{{label_title}}"><br>
+            <textarea form="news-create" name="content" rows="5" class="input" style="width:100%"></textarea>
+        </td>
+        <td><input form="news-create" type="checkbox" name="hidden" value="1"></td>
+        <td><input form="news-create" type="submit" value="{{btn_create}}" class="input"></td>
     </tr>
 
     </tbody>

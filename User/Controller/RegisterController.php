@@ -106,7 +106,7 @@ final class RegisterController extends AbstractController
         $mailbox     = $this->mailboxIsUsername()
             ? $username
             : self::mStr($posted, 'mailbox', '');
-        $email       = self::mStr($posted, 'email', '');
+        $email       = $this->userService->requireRecoveryEmail() ? self::mStr($posted, 'email', '') : '';
         $displayName = self::mStr($posted, 'display_name', '');
         $month       = is_numeric($posted['month'] ?? null) ? (int) $posted['month'] : null;
         $day         = is_numeric($posted['day']   ?? null) ? (int) $posted['day']   : null;
@@ -191,13 +191,19 @@ final class RegisterController extends AbstractController
 
         $registerResult = $this->userService->register(
             $username, $password, $repeat,
-            $mailbox ?: null, $email ?: null, $displayName ?: null,
+            $mailbox !== '' ? $mailbox : null, $email !== '' ? $email : null, $displayName !== '' ? $displayName : null,
             $month, $day, $year,
             $verifiedPublicKey,
         );
 
         if (!$registerResult->isOk()) {
             $registerResult->drainTo($this->collector);
+            foreach ($registerResult->diagnostics() as $diagnostic) {
+                if ($diagnostic instanceof \AstrX\User\Diagnostic\UserIdentifierUnavailableDiagnostic) {
+                    $this->ctx->set('registration_error', $this->t->t('user.register.identifier_unavailable'));
+                    break;
+                }
+            }
             // Give the claimed code back so a transient register failure doesn't
             // burn it (release only un-claims a still-unattributed code).
             if ($requireInvite && $inviteCode !== '') {
@@ -282,7 +288,7 @@ final class RegisterController extends AbstractController
 
         $this->zkp->present($this->ctx, $this->t, 'register');
         $csrfToken = $this->csrf->generate(self::FORM);
-        $pageUrl   = $this->request->uri()->path();
+        $pageUrl   = $this->urlGen->toPage($this->t->t('WORDING_REGISTER'));
         $prgId     = $this->prg->createId($pageUrl);
 
         $captchaResult = $this->userService->shouldShowCaptcha(self::FORM);
@@ -308,8 +314,7 @@ final class RegisterController extends AbstractController
         $this->ctx->set('captcha_id',         $captchaId);
         // Iframe-reloadable captcha — see LoginController for the rationale.
         $captchaFrameUrl = $captchaId !== ''
-            ? $this->urlGen->toPage($this->t->t('WORDING_CAPTCHA_FRAME'))
-                . '?cid=' . $captchaId
+            ? $this->urlGen->toPage($this->t->t('WORDING_CAPTCHA_FRAME'), ['cid' => $captchaId])
             : '';
         $this->ctx->set('captcha_frame_url', $captchaFrameUrl);
         // Reload button (iframe) is opt-in; off = a plain single-image captcha.

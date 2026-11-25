@@ -5,6 +5,7 @@
 <p>{{reg_closed_msg}}</p>
 {{/registrations_closed}}
 {{^registrations_closed}}
+{{#registration_error}}<p class="diag-error" role="alert">{{registration_error}}</p>{{/registration_error}}
 <form method="POST">
   <input type="hidden" name="prg_id" value="{{prg_id}}">
   <input type="hidden" name="_csrf"  value="{{csrf_token}}">

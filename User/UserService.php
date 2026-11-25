@@ -134,7 +134,7 @@ final class UserService
     private bool   $allowRegister         = true;
     private bool   $allowLoginNonVerified = true;
     private bool   $requireEmail          = true;
-    private bool   $requireRecoveryEmail  = true;
+    private bool   $requireRecoveryEmail  = false;
     private bool   $requireBirthDate      = false;
     private bool   $requireDisplayName    = true;
     private int    $minimumAge            = 0;

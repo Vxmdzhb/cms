@@ -83,7 +83,7 @@ final class AdminCommentsController extends AbstractController
         $prgToken = $this->request->query()->get($this->prg->tokenQueryKey());
         if (is_string($prgToken) && $prgToken !== '') {
             $qs = $this->processForm($prgToken, $canModerate, $canConfig);
-            Response::redirect($selfUrl . $qs)->send()->drainTo($this->collector);
+            Response::redirect($selfUrl . ($qs === '' ? '' : (str_contains($selfUrl, '?') ? '&' : '?') . $qs))->send()->drainTo($this->collector);
             exit;
         }
 
@@ -283,6 +283,7 @@ final class AdminCommentsController extends AbstractController
         $this->ctx->set('can_moderate', $canModerate);
         $this->ctx->set('can_config',   $canConfig);
         $this->ctx->set('base_url',     $selfUrl);
+        $this->ctx->set('edit_url_prefix', $selfUrl . (str_contains($selfUrl, '?') ? '&' : '?') . 'edit=');
         $this->ctx->set('csrf_token',   $csrfToken);
         $this->ctx->set('prg_id',       $prgId);
 
@@ -294,7 +295,7 @@ final class AdminCommentsController extends AbstractController
         $editId   = is_int($editRaw) ? $editRaw : (is_numeric($editRaw) ? (int)$editRaw : 0);
 
             $filters = [];
-            if ($qPageId !== null) { $filters['page_id'] = is_int($qPageId) ? $qPageId : (is_numeric($qPageId) ? (int)$qPageId : 0); }
+            if (is_numeric($qPageId) && (int) $qPageId > 0) { $filters['page_id'] = (int) $qPageId; }
             if ($qFlagged === '1')    { $filters['flagged']  = 1; }
             if ($qHidden  === '0')    { $filters['hidden']   = 0; }
             elseif ($qHidden === '1') { $filters['hidden']   = 1; }
@@ -368,7 +369,7 @@ final class AdminCommentsController extends AbstractController
         if ($pageId  !== null) { $parts[] = 'page_id='     . rawurlencode(is_scalar($pageId) ? (string)$pageId : ''); }
         if ($flagged !== null) { $parts[] = 'flagged='     . rawurlencode(is_scalar($flagged) ? (string)$flagged : ''); }
         if ($hidden  !== null) { $parts[] = 'show_hidden=' . rawurlencode(is_scalar($hidden) ? (string)$hidden : ''); }
-        return $parts !== [] ? '?' . implode('&', $parts) : '';
+        return implode('&', $parts);
     }
 
     /** @return array<string, mixed> */

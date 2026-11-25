@@ -79,7 +79,7 @@ final class TwofaController extends AbstractController
             exit;
         }
 
-        $selfUrl  = $this->request->uri()->path();
+        $selfUrl  = $this->urlGen->toPage($this->t->t('WORDING_TWOFA'));
         $prgToken = $this->request->query()->get($this->prg->tokenQueryKey());
         if (is_string($prgToken) && $prgToken !== '') {
             $this->processSubmission($this->prg->pull($prgToken) ?? [], $uid);

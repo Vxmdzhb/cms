@@ -82,14 +82,15 @@ final class AdminNavbarController extends AbstractController
         // PRG dispatch
         $prgToken = $this->request->query()->get($this->prg->tokenQueryKey());
         if (is_string($prgToken) && $prgToken !== '') {
-            $this->processForm($prgToken);
-            // Preserve the active navbar tab on redirect
-            $nbRaw = $this->request->query()->get('nb');
-            $nb    = is_int($nbRaw) ? $nbRaw : (is_numeric($nbRaw) ? (int)$nbRaw : 1);
-            $pinRaw = $this->request->query()->get('pin');
-            $pin    = is_int($pinRaw) ? $pinRaw : (is_numeric($pinRaw) ? (int)$pinRaw : 0);
-            $qs  = '?nb=' . $nb . ($pin > 0 ? '&pin=' . $pin : '');
-            Response::redirect($selfUrl . $qs)
+            $posted = $this->prg->pull($prgToken) ?? [];
+            try {
+                $this->processForm($posted);
+            } catch (\PDOException $e) {
+                $this->emitDiag($e);
+                $this->flash->set('error', $this->t->t('admin.db_error'));
+            }
+            $navbar = max(1, min(3, self::mInt($posted, 'navbar_id', 1)));
+            Response::redirect($this->urlGen->toPage($resolvedUrlId, ['nb' => $navbar]))
                 ->send()->drainTo($this->collector);
             exit;
         }
@@ -104,37 +105,6 @@ final class AdminNavbarController extends AbstractController
         // Build full data tree for all three navbars
         $navbars = $this->loadAllNavbars();
 
-        // Editing state — flatten to named vars so Mustache doesn't iterate
-        $editingPin   = false;
-        $editingEntry = false;
-        if ($activePin > 0) {
-            $pinRow = $this->findPin($navbars, $activeNavbar, $activePin);
-            if ($pinRow !== null) {
-                $editingPin = true;
-                $this->ctx->set('ep_id',         $activePin);
-                $this->ctx->set('ep_sort_order', $pinRow['sort_order']);
-                $this->ctx->set('ep_sort_mode',  (is_int($pinRow['sort_mode'] ?? null) ? (int)$pinRow['sort_mode'] : 0));
-                $this->ctx->set('ep_alpha',       $pinRow['sort_mode'] === 0);
-                $this->ctx->set('ep_custom',      $pinRow['sort_mode'] === 1);
-            }
-        }
-        if ($activeEntry > 0) {
-            $entryRow = $this->loadEntry($activeEntry);
-            if ($entryRow !== null) {
-                $editingEntry = true;
-                $this->ctx->set('ee_id',         $activeEntry);
-                $this->ctx->set('ee_name',       $entryRow['name']);
-                $this->ctx->set('ee_i18n',       (bool) $entryRow['i18n']);
-                $this->ctx->set('ee_internal',   (bool) $entryRow['internal']);
-                $this->ctx->set('ee_external',   !(bool) $entryRow['internal']);
-                $this->ctx->set('ee_url',        $entryRow['url'] ?? '');
-                $this->ctx->set('ee_page_id',    self::mInt($entryRow, 'page_id', 0));
-                $this->ctx->set('ee_sort_order', (is_int($entryRow['sort_order'] ?? null) ? (int)$entryRow['sort_order'] : 0));
-                $this->ctx->set('ee_active',     (bool) $entryRow['active']);
-                $this->ctx->set('ee_pin_id',     (is_int($entryRow['pin_id'] ?? null) ? (int)$entryRow['pin_id'] : 0));
-            }
-        }
-
         $csrfToken = $this->csrf->generate(self::FORM);
         $prgId     = $this->prg->createId($selfUrl);
         $pages     = $this->loadPages();
@@ -142,13 +112,8 @@ final class AdminNavbarController extends AbstractController
 
         $this->ctx->set('csrf_token',     $csrfToken);
         $this->ctx->set('prg_id',         $prgId);
-        $this->ctx->set('active_navbar',  $activeNavbar);
-        $this->ctx->set('active_pin',     $activePin);
-        // Editing happens inline, per row.
-        $this->ctx->set('has_edit_pin',   false);
-        $this->ctx->set('has_edit_entry', false);
         $this->ctx->set('available_pages', $pages);
-        $this->ctx->set('base_url',       $selfUrl);
+        $this->ctx->set('query_url', $selfUrl . (str_contains($selfUrl, '?') ? '&' : '?'));
 
         // Decorate navbars: active flag, navbar_id, pin_id, editing flags
         /** @var list<array<string,mixed>> $navbars */
@@ -161,30 +126,31 @@ final class AdminNavbarController extends AbstractController
                 /** @var array<string,mixed> $pin */
                 $pin['navbar_id'] = $nb['id'];
                 $pinIsEditing = ($pin['id'] === $activePin && $nb['id'] === $activeNavbar);
-                $pin['editing'] = $pinIsEditing ? [$pin] : false;
+                $pin['editing'] = $pinIsEditing && $activeEntry === 0;
                 $entries = is_array($pin['entries'] ?? null) ? $pin['entries'] : [];
                 foreach ($entries as &$entry) {
                     /** @var array<string,mixed> $entry */
                     $entry['navbar_id'] = $nb['id'];
                     $entry['pin_id']    = $pin['id'];
-                    if ($entry['id'] === $activeEntry) {
-                        $entryCtx = $entry;
+                    if ($pinIsEditing && $entry['id'] === $activeEntry) {
                         // Mark the selected page option
                         $editingPageId = self::mInt($entry, 'page_id', 0);
                         $pagesWithSel = [];
-                        foreach ($this->loadPages() as $pg) {
-                            $pg['selected'] = ((is_int($pg['id']) ? $pg['id'] : 0) === $editingPageId);
+                        foreach ($pages as $pg) {
+                            $pg['selected'] = (self::mInt($pg, 'id') === $editingPageId);
                             $pagesWithSel[] = $pg;
                         }
-                        $entryCtx['available_pages'] = $pagesWithSel;
-                        $entry['editing'] = [$entryCtx];
+                        $entry['available_pages'] = $pagesWithSel;
+                        $entry['editing'] = true;
                     } else {
                         $entry['editing'] = false;
                     }
                 }
                 unset($entry);
+                $pin['entries'] = $entries;
             }
             unset($pin);
+            $nb['pins'] = $pins;
         }
         unset($nb);
         $this->ctx->set('navbars', $navbars);
@@ -202,9 +168,9 @@ final class AdminNavbarController extends AbstractController
     // Form processing
     // =========================================================================
 
-    private function processForm(string $prgToken): void
+    /** @param array<string,mixed> $posted */
+    private function processForm(array $posted): void
     {
-        $posted     = $this->prg->pull($prgToken) ?? [];
         $csrfResult = $this->csrf->verify(self::FORM, self::mStr($posted, '_csrf', ''));
         if (!$csrfResult->isOk()) {
             $csrfResult->drainTo($this->collector);
@@ -239,6 +205,7 @@ final class AdminNavbarController extends AbstractController
 
             // ── Entry actions ─────────────────────────────────────────────────
             case 'add_entry':
+            case 'update_entry':
                 $name      = trim(self::mStr($posted, 'name', ''));
                 $type      = self::mStr($posted, 'type', 'external');
                 $url       = trim(self::mStr($posted, 'url', ''));
@@ -251,20 +218,17 @@ final class AdminNavbarController extends AbstractController
                     $this->flash->set('error', $this->t->t('admin.navbar.name_required'));
                     break;
                 }
-                $this->addEntry($pinId, $name, $i18n, $type, $url, $pageId, $sortOrder, $active);
-                $this->flash->set('success', $this->t->t('admin.navbar.added'));
-                break;
-
-            case 'update_entry':
-                $name      = trim(self::mStr($posted, 'name', ''));
-                $type      = self::mStr($posted, 'type', 'external');
-                $url       = trim(self::mStr($posted, 'url', ''));
-                $pageId    = self::mInt($posted, 'page_id', 0);
-                $sortOrder = self::mInt($posted, 'sort_order', 0);
-                $active    = self::mBool($posted, 'active') ? 1 : 0;
-                $i18n      = self::mBool($posted, 'i18n')   ? 1 : 0;
-                $this->updateEntry($entryId, $name, $i18n, $type, $url, $pageId, $sortOrder, $active);
-                $this->flash->set('success', $this->t->t('admin.navbar.updated'));
+                if ($type === 'internal' && $pageId <= 0) {
+                    $this->flash->set('error', $this->t->t('admin.navbar.page_required'));
+                    break;
+                }
+                if ($action === 'add_entry') {
+                    $this->addEntry($pinId, $name, $i18n, $type, $url, $pageId, $sortOrder, $active);
+                    $this->flash->set('success', $this->t->t('admin.navbar.added'));
+                } else {
+                    $this->updateEntry($entryId, $name, $i18n, $type, $url, $pageId, $sortOrder, $active);
+                    $this->flash->set('success', $this->t->t('admin.navbar.updated'));
+                }
                 break;
 
             case 'toggle_entry':
@@ -316,7 +280,7 @@ final class AdminNavbarController extends AbstractController
 
         $navbars = [];
         foreach ($rows as $row) {
-            $nid = (is_int($row['navbar_id']) ? $row['navbar_id'] : 0);
+            $nid = self::mInt($row, 'navbar_id');
             $rawPinId = $row['pin_id'];
             $pid = $rawPinId !== null ? (is_int($rawPinId) ? $rawPinId : (is_numeric($rawPinId) ? (int)$rawPinId : null)) : null;
             $rawEntryId = $row['entry_id'];
@@ -332,10 +296,10 @@ final class AdminNavbarController extends AbstractController
             if ($pid !== null && !isset($navbars[$nid]['pins'][$pid])) {
                 $navbars[$nid]['pins'][$pid] = [
                     'id'         => $pid,
-                    'sort_order' => (is_int($row['pin_sort_order']) ? $row['pin_sort_order'] : 0),
-                    'sort_mode'  => (is_int($row['sort_mode']) ? $row['sort_mode'] : 0),
-                    'alpha'      => (is_int($row['sort_mode']) ? $row['sort_mode'] : 0) === 0,
-                    'custom'     => (is_int($row['sort_mode']) ? $row['sort_mode'] : 0) === 1,
+                    'sort_order' => self::mInt($row, 'pin_sort_order'),
+                    'sort_mode'  => self::mInt($row, 'sort_mode'),
+                    'alpha'      => self::mInt($row, 'sort_mode') === 0,
+                    'custom'     => self::mInt($row, 'sort_mode') === 1,
                     'entries'    => [],
                 ];
             }
@@ -347,8 +311,8 @@ final class AdminNavbarController extends AbstractController
                     'internal'   => (bool) $row['internal'],
                     'external'   => !(bool) $row['internal'],
                     'active'     => (bool) $row['active'],
-                    'sort_order' => (is_int($row['entry_sort_order']) ? $row['entry_sort_order'] : 0),
-                    'page_id'    => $row['page_id'] !== null ? (is_int($row['page_id']) ? $row['page_id'] : 0) : null,
+                    'sort_order' => self::mInt($row, 'entry_sort_order'),
+                    'page_id'    => $row['page_id'] !== null ? self::mInt($row, 'page_id') : null,
                     'page_url_id'=> $row['page_url_id'],
                     'url'        => $row['url'],
                 ];
@@ -362,49 +326,6 @@ final class AdminNavbarController extends AbstractController
         unset($nb);
 
         return array_values($navbars);
-    }
-
-    /**
-     * @param array<int,array<string,mixed>> $navbars
-     * @return array<string,mixed>|null
-     */
-    private function findPin(array $navbars, int $navbarId, int $pinId): ?array
-    {
-        foreach ($navbars as $nb) {
-            if ($nb['id'] !== $navbarId) {
-                continue;
-            }
-            $pinsArr = is_array($nb['pins'] ?? null) ? $nb['pins'] : [];
-            foreach ($pinsArr as $pin) {
-                /** @var array<string,mixed> $pin */
-                if ($pin['id'] === $pinId) {
-                    return $pin;
-                }
-            }
-        }
-        return null;
-    }
-
-    /** @return array<string,mixed>|null */
-    private function loadEntry(int $id): ?array
-    {
-        try {
-            $stmt = $this->pdo->prepare(
-                'SELECT e.id, e.pin_id, e.name, e.i18n, e.internal, e.active, e.sort_order,
-                        ni.page_id, ne.url
-                   FROM navbar_entry e
-                   LEFT JOIN navbar_internal ni ON ni.id = e.id
-                   LEFT JOIN navbar_external ne ON ne.id = e.id
-                  WHERE e.id = :id LIMIT 1'
-            );
-            $stmt->execute([':id' => $id]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!is_array($row)) { return null; }
-            /** @var array<string,mixed> $row */
-            return $row;
-        } catch (\PDOException) {
-            return null;
-        }
     }
 
     /** @return list<array<string,mixed>> */
@@ -433,36 +354,24 @@ final class AdminNavbarController extends AbstractController
 
     private function addPin(int $navbarId, int $sortOrder, int $sortMode): void
     {
-        try {
-            $this->pdo->prepare(
-                'INSERT INTO navbar_pin (navbar_id, sort_order, sort_mode)
-                 VALUES (:nb, :so, :sm)'
-            )->execute([':nb' => $navbarId, ':so' => $sortOrder, ':sm' => $sortMode]);
-        } catch (\PDOException $e) {
-            $this->emitDiag($e);
-        }
+        $this->pdo->prepare(
+            'INSERT INTO navbar_pin (navbar_id, sort_order, sort_mode)
+             VALUES (:nb, :so, :sm)'
+        )->execute([':nb' => $navbarId, ':so' => $sortOrder, ':sm' => $sortMode]);
     }
 
     private function updatePin(int $id, int $sortOrder, int $sortMode): void
     {
-        try {
-            $this->pdo->prepare(
-                'UPDATE navbar_pin SET sort_order = :so, sort_mode = :sm WHERE id = :id'
-            )->execute([':so' => $sortOrder, ':sm' => $sortMode, ':id' => $id]);
-        } catch (\PDOException $e) {
-            $this->emitDiag($e);
-        }
+        $this->pdo->prepare(
+            'UPDATE navbar_pin SET sort_order = :so, sort_mode = :sm WHERE id = :id'
+        )->execute([':so' => $sortOrder, ':sm' => $sortMode, ':id' => $id]);
     }
 
     private function deletePin(int $id): void
     {
-        try {
-            // CASCADE deletes entries and their internal/external subtypes
-            $this->pdo->prepare('DELETE FROM navbar_pin WHERE id = :id')
-                ->execute([':id' => $id]);
-        } catch (\PDOException $e) {
-            $this->emitDiag($e);
-        }
+        // CASCADE deletes entries and their internal/external subtypes
+        $this->pdo->prepare('DELETE FROM navbar_pin WHERE id = :id')
+            ->execute([':id' => $id]);
     }
 
     // =========================================================================
@@ -485,7 +394,7 @@ final class AdminNavbarController extends AbstractController
                         ':name' => $name, ':i18n' => $i18n,
                         ':active' => $active, ':sort' => $sortOrder]);
 
-            if ($isInternal && $pageId > 0) {
+            if ($isInternal) {
                 $this->pdo->prepare(
                     'INSERT INTO navbar_internal (id, page_id) VALUES (:id, :pid)'
                 )->execute([':id' => $newId, ':pid' => $pageId]);
@@ -496,10 +405,8 @@ final class AdminNavbarController extends AbstractController
             }
             $this->pdo->commit();
         } catch (\PDOException $e) {
-            // Guard rollBack with inTransaction check —
-            // if beginTransaction() itself failed, calling rollBack throws.
             if ($this->pdo->inTransaction()) { $this->pdo->rollBack(); }
-            $this->emitDiag($e);
+            throw $e;
         }
     }
 
@@ -537,29 +444,20 @@ final class AdminNavbarController extends AbstractController
             $this->pdo->commit();
         } catch (\PDOException $e) {
             if ($this->pdo->inTransaction()) { $this->pdo->rollBack(); }
-            $this->emitDiag($e);
+            throw $e;
         }
     }
 
     private function toggleEntry(int $id): void
     {
-        try {
-            $this->pdo->prepare('UPDATE navbar_entry SET active = 1 - active WHERE id = :id')
-                ->execute([':id' => $id]);
-        } catch (\PDOException $e) {
-            // Emit diagnostic instead of silent swallow.
-            $this->emitDiag($e);
-        }
+        $this->pdo->prepare('UPDATE navbar_entry SET active = 1 - active WHERE id = :id')
+            ->execute([':id' => $id]);
     }
 
     private function deleteEntry(int $id): void
     {
-        try {
-            $this->pdo->prepare('DELETE FROM navbar_entry_ids WHERE id = :id')
-                ->execute([':id' => $id]);
-        } catch (\PDOException $e) {
-            $this->emitDiag($e);
-        }
+        $this->pdo->prepare('DELETE FROM navbar_entry_ids WHERE id = :id')
+            ->execute([':id' => $id]);
     }
 
     // =========================================================================

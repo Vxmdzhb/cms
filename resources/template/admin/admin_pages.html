@@ -1,5 +1,6 @@
 <h2>{{admin_pages_heading}}</h2>
 
+<div class="table-scroll" tabindex="0" role="region" aria-label="{{table_scroll_label}}">
 <table>
     <thead><tr>
         <th>ID</th>
@@ -54,7 +55,7 @@
         </form>
     </td>
     <td>
-        <a href="{{base_url}}?edit={{id}}" class="input">{{btn_edit}}</a>
+        <a href="{{edit_url_prefix}}{{id}}" class="input">{{btn_edit}}</a>
         <form method="POST" style="display:inline">
             <input type="hidden" name="prg_id"  value="{{prg_id}}">
             <input type="hidden" name="_csrf"   value="{{csrf_token}}">
@@ -69,61 +70,66 @@
 
     {{#editing}}
     <tr>
-        <form method="POST">
-            <input type="hidden" name="prg_id"  value="{{prg_id}}">
-            <input type="hidden" name="_csrf"   value="{{csrf_token}}">
-            <input type="hidden" name="action"  value="update">
-            <input type="hidden" name="page_id" value="{{id}}">
-            <td>{{id}}</td>
-            <td>
-                <small style="color:#c00">⚠ {{pages_routing_warning}}</small><br>
-                <input type="text" name="url_id" class="input" value="{{url_id}}">
-            </td>
-            <td><input type="text" name="file_name" class="input" value="{{file_name}}"></td>
-            <td>
-                <input type="text" name="title" class="input" value="{{title}}"><br>
-                <textarea name="description" rows="2" class="input">{{description}}</textarea>
-            </td>
-            <td><input type="checkbox" name="i18n"       value="1"{{#i18n}}       checked{{/i18n}}></td>
-            <td><input type="checkbox" name="template"   value="1"{{#template}}   checked{{/template}}></td>
-            <td><input type="checkbox" name="controller" value="1"{{#controller}} checked{{/controller}}></td>
-            <td><input type="checkbox" name="hidden"     value="1"{{#hidden}}     checked{{/hidden}}></td>
-            <td><input type="checkbox" name="comments"   value="1"{{#comments}}   checked{{/comments}}></td>
-            <td><input type="checkbox" name="api_enabled" value="1"{{#api_enabled}} checked{{/api_enabled}}></td>
-            <td>
-                <input type="submit" value="{{btn_update}}" class="input"><br>
-                <a href="{{base_url}}">{{btn_cancel}}</a>
-            </td>
-        </form>
+        <td>
+            <form method="POST" id="pages-update-{{id}}">
+                <input type="hidden" name="prg_id"  value="{{prg_id}}">
+                <input type="hidden" name="_csrf"   value="{{csrf_token}}">
+                <input type="hidden" name="action"  value="update">
+                <input type="hidden" name="page_id" value="{{id}}">
+            </form>
+            {{id}}
+        </td>
+        <td>
+            <small style="color:#c00">⚠ {{pages_routing_warning}}</small><br>
+            <input form="pages-update-{{id}}" type="text" name="url_id" class="input" value="{{url_id}}">
+        </td>
+        <td><input form="pages-update-{{id}}" type="text" name="file_name" class="input" value="{{file_name}}"></td>
+        <td>
+            <input form="pages-update-{{id}}" type="text" name="title" class="input" value="{{title}}"><br>
+            <textarea form="pages-update-{{id}}" name="description" rows="2" class="input">{{description}}</textarea>
+        </td>
+        <td><input form="pages-update-{{id}}" type="checkbox" name="i18n"       value="1"{{#i18n}}       checked{{/i18n}}></td>
+        <td><input form="pages-update-{{id}}" type="checkbox" name="template"   value="1"{{#template}}   checked{{/template}}></td>
+        <td><input form="pages-update-{{id}}" type="checkbox" name="controller" value="1"{{#controller}} checked{{/controller}}></td>
+        <td><input form="pages-update-{{id}}" type="checkbox" name="hidden"     value="1"{{#hidden}}     checked{{/hidden}}></td>
+        <td><input form="pages-update-{{id}}" type="checkbox" name="comments"   value="1"{{#comments}}   checked{{/comments}}></td>
+        <td><input form="pages-update-{{id}}" type="checkbox" name="api_enabled" value="1"{{#api_enabled}} checked{{/api_enabled}}></td>
+        <td>
+            <input form="pages-update-{{id}}" type="submit" value="{{btn_update}}" class="input"><br>
+            <a href="{{base_url}}">{{btn_cancel}}</a>
+        </td>
     </tr>
     {{/editing}}
     {{/page_list}}
 
     {{! Add row }}
     <tr>
-        <form method="POST">
-            <input type="hidden" name="prg_id" value="{{prg_id}}">
-            <input type="hidden" name="_csrf"  value="{{csrf_token}}">
-            <input type="hidden" name="action" value="add">
-            <td><em>new</em></td>
-            <td>
-                <small style="color:#c00">⚠ {{pages_routing_warning}}</small><br>
-                <input type="text" name="url_id" class="input" required placeholder="WORDING_…">
-            </td>
-            <td><input type="text" name="file_name" class="input" required placeholder="file_name"></td>
-            <td>
-                <input type="text" name="title" class="input" placeholder="{{label_title}}"><br>
-                <textarea name="description" rows="2" class="input" placeholder="{{label_description}}"></textarea>
-            </td>
-            <td><input type="checkbox" name="i18n"       value="1" checked></td>
-            <td><input type="checkbox" name="template"   value="1" checked></td>
-            <td><input type="checkbox" name="controller" value="1" checked></td>
-            <td><input type="checkbox" name="hidden"     value="1"></td>
-            <td><input type="checkbox" name="comments"   value="1"></td>
-            <td><input type="checkbox" name="api_enabled" value="1"></td>
-            <td><input type="submit" value="{{btn_add}}" class="input"></td>
-        </form>
+        <td>
+            <form method="POST" id="pages-add">
+                <input type="hidden" name="prg_id" value="{{prg_id}}">
+                <input type="hidden" name="_csrf"  value="{{csrf_token}}">
+                <input type="hidden" name="action" value="add">
+            </form>
+            <em>new</em>
+        </td>
+        <td>
+            <small style="color:#c00">⚠ {{pages_routing_warning}}</small><br>
+            <input form="pages-add" type="text" name="url_id" class="input" required placeholder="WORDING_…">
+        </td>
+        <td><input form="pages-add" type="text" name="file_name" class="input" required placeholder="file_name"></td>
+        <td>
+            <input form="pages-add" type="text" name="title" class="input" placeholder="{{label_title}}"><br>
+            <textarea form="pages-add" name="description" rows="2" class="input" placeholder="{{label_description}}"></textarea>
+        </td>
+        <td><input form="pages-add" type="checkbox" name="i18n"       value="1" checked></td>
+        <td><input form="pages-add" type="checkbox" name="template"   value="1" checked></td>
+        <td><input form="pages-add" type="checkbox" name="controller" value="1" checked></td>
+        <td><input form="pages-add" type="checkbox" name="hidden"     value="1"></td>
+        <td><input form="pages-add" type="checkbox" name="comments"   value="1"></td>
+        <td><input form="pages-add" type="checkbox" name="api_enabled" value="1"></td>
+        <td><input form="pages-add" type="submit" value="{{btn_add}}" class="input"></td>
     </tr>
 
     </tbody>
 </table>
+</div>

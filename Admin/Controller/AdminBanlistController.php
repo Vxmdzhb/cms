@@ -10,6 +10,8 @@ use AstrX\Config\Config;
 use AstrX\Config\ConfigWriter;
 use AstrX\Csrf\CsrfHandler;
 use AstrX\Http\Request;
+use AstrX\Routing\UrlGenerator;
+use AstrX\Page\Page;
 use AstrX\Http\Response;
 use AstrX\I18n\Translator;
 use AstrX\Result\DiagnosticsCollector;
@@ -37,6 +39,8 @@ final class AdminBanlistController extends AbstractController
     public function __construct(
         DiagnosticsCollector                   $collector,
         private readonly TemplateVars $ctx,
+        private readonly Page                  $page,
+        private readonly UrlGenerator          $urlGen,
         private readonly Request               $request,
         private readonly BanlistRepository     $banlist,
         private readonly Config                $config,
@@ -61,15 +65,16 @@ final class AdminBanlistController extends AbstractController
             return $this->ok();
         }
 
+        $slug = $this->page->resolvedUrlId($this->t);
         $prgToken = $this->request->query()->get($this->prg->tokenQueryKey());
         if (is_string($prgToken) && $prgToken !== '') {
-            $qs = $this->processForm($prgToken);
-            Response::redirect($this->appendSid($this->request->uri()->path() . $qs))
+            $route = $this->processForm($prgToken);
+            Response::redirect($this->urlGen->toPage($slug, $route === '' ? [] : ['route_edit' => $route]))
                 ->send()->drainTo($this->collector);
             exit;
         }
 
-        $this->buildContext();
+        $this->buildContext($slug);
         return $this->ok();
     }
 
@@ -254,7 +259,7 @@ final class AdminBanlistController extends AbstractController
                     $saveResult->drainTo($this->collector);
                     if ($saveResult->isOk()) { $this->audit->log('banlist.round_add', "route:{$key}")->drainTo($this->collector); }
                     $this->flash->set('success', $this->t->t('admin.banlist.round_added'));
-                    return '?route_edit=' . rawurlencode($key);
+                    return $key;
                 }
                 break;
 
@@ -274,7 +279,7 @@ final class AdminBanlistController extends AbstractController
                     $saveResult->drainTo($this->collector);
                     if ($saveResult->isOk()) { $this->audit->log('banlist.round_update', "route:{$key}")->drainTo($this->collector); }
                     $this->flash->set('success', $this->t->t('admin.banlist.round_updated'));
-                    return '?route_edit=' . rawurlencode($key);
+                    return $key;
                 }
                 break;
 
@@ -290,7 +295,7 @@ final class AdminBanlistController extends AbstractController
                     $saveResult->drainTo($this->collector);
                     if ($saveResult->isOk()) { $this->audit->log('banlist.round_delete', "route:{$key}")->drainTo($this->collector); }
                     $this->flash->set('success', $this->t->t('admin.banlist.round_deleted'));
-                    return '?route_edit=' . rawurlencode($key);
+                    return $key;
                 }
                 break;
         }
@@ -300,7 +305,7 @@ final class AdminBanlistController extends AbstractController
 
     // ── Context builder ───────────────────────────────────────────────────────
 
-    private function buildContext(): void
+    private function buildContext(string $slug): void
     {
         $banEditId   = self::queryInt($this->request, 'edit', 0);
         $routeEditId = trim((is_scalar($vroute_edit = $this->request->query()->get('route_edit') ?? '') ? (string)$vroute_edit : ''));
@@ -365,13 +370,13 @@ final class AdminBanlistController extends AbstractController
                 'name'       => (string) $route['name'],
                 'rounds'     => $rounds,
                 'is_editing' => $isEditing,
-                'edit_url'   => $this->appendSid($this->request->uri()->path() . '?route_edit=' . rawurlencode($key)),
-                'cancel_url' => $this->request->uri()->path(),
+                'edit_url'   => $this->urlGen->toPage($slug, ['route_edit' => $key]),
+                'cancel_url' => $this->urlGen->toPage($slug),
             ];
         }
 
         $csrfToken = $this->csrf->generate(self::FORM);
-        $prgId     = $this->prg->createId($this->appendSid($this->request->uri()->path()));
+        $prgId     = $this->prg->createId($this->urlGen->toPage($slug));
 
         $this->ctx->set('csrf_token',     $csrfToken);
         $this->ctx->set('prg_id',         $prgId);
@@ -379,35 +384,13 @@ final class AdminBanlistController extends AbstractController
         $this->ctx->set('ban_routes',     $routeList);
         $this->ctx->set('has_routes',     $routeList !== []);
         $this->ctx->set('add_ban_routes', $routeOptions);
-        $this->ctx->set('base_url',       $this->request->uri()->path());
+        $selfUrl = $this->urlGen->toPage($slug);
+        $this->ctx->set('base_url',       $selfUrl);
+        $this->ctx->set('edit_url_prefix', $selfUrl . (str_contains($selfUrl, '?') ? '&' : '?') . 'edit=');
         $this->setI18n();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
-
-    /**
-     * Append the cookieless query-mode session id to a raw self-URL so the PRG
-     * replay redirect, the PRG target stored for the settling GET, and the route
-     * "edit" link keep the session. Rewrite mode carries the sid in the path
-     * already; cookie mode has nothing to add — a no-op unless cookies are OFF and
-     * URL-rewrite is OFF (the sid rides as a query parameter).
-     *
-     * NOTE: {{base_url}} is intentionally NOT routed through this — admin_banlist.html
-     * concatenates it as `{{base_url}}?edit={{id}}`, so a `?sid=` suffix here would
-     * produce a double `?`. Fixing the ban edit/cancel links needs a template change.
-     */
-    private function appendSid(string $url): string
-    {
-        if (!$this->config->getConfigBool('Session', 'use_cookies', true)
-            && !$this->config->getConfigBool('Routing', 'url_rewrite', true)) {
-            $sk  = $this->config->getConfigString('Routing', 'session_key', 'sid');
-            $sid = session_id();
-            if (is_string($sid) && $sid !== '') {
-                $url .= (str_contains($url, '?') ? '&' : '?') . rawurlencode($sk) . '=' . rawurlencode($sid);
-            }
-        }
-        return $url;
-    }
 
     /** @return array<string, list<array<string,mixed>>> */
     private function loadRoutes(): array

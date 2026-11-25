@@ -313,7 +313,7 @@ final class AdminConfigMailController extends AbstractController
                 'Mailer',
                 'socks5_port',
                 9050
-            )
+            ) ?: 9050
         );
         $this->ctx->set(
             'cfg_test_recipient',
