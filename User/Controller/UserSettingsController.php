@@ -11,6 +11,7 @@ use AstrX\I18n\Translator;
 use AstrX\Result\DiagnosticsCollector;
 use AstrX\Result\Result;
 use AstrX\Routing\UrlGenerator;
+use AstrX\Session\FlashBag;
 use AstrX\Session\PrgHandler;
 use AstrX\Template\TemplateVars;
 use AstrX\User\AvatarService;
@@ -54,6 +55,7 @@ final class UserSettingsController extends AbstractController
         private readonly Gate                  $gate,
         private readonly EmailService          $emailService,
         private readonly ZkpService            $zkp,
+        private readonly FlashBag              $flash,
     ) {
         parent::__construct($collector);
     }
@@ -136,13 +138,13 @@ final class UserSettingsController extends AbstractController
             case 'enroll_zkp':
                 $proof = $this->zkp->verify('enroll', $this->session->username(), self::mStr($posted, 'zkp_proof', ''));
                 if (!$proof->isOk()) { $proof->drainTo($this->collector); break; }
-                $this->userService->changePublicKey($hexId, self::mStr($posted, 'current_password', ''), $proof->unwrap())
+                $result = $this->userService->changePublicKey($hexId, self::mStr($posted, 'current_password', ''), $proof->unwrap())
                     ->drainTo($this->collector);
                 break;
 
             case 'revoke_zkp':
                 if ($this->zkp->origin() === null) { break; }
-                $this->userService->changePublicKey($hexId, self::mStr($posted, 'current_password', ''), null)
+                $result = $this->userService->changePublicKey($hexId, self::mStr($posted, 'current_password', ''), null)
                     ->drainTo($this->collector);
                 break;
 
@@ -214,6 +216,13 @@ final class UserSettingsController extends AbstractController
                     if ($result->isOk()) {
                         $this->session->updateAvatar(true);
                     }
+                } else {
+                    // Submitted without choosing a file.
+                    $this->emit(new \AstrX\User\Diagnostic\UserAvatarUploadErrorDiagnostic(
+                        'astrx.user/avatar_upload_error',
+                        \AstrX\Result\DiagnosticLevel::NOTICE,
+                        (string) UPLOAD_ERR_NO_FILE,
+                    ));
                 }
                 break;
 
@@ -325,6 +334,17 @@ final class UserSettingsController extends AbstractController
                     exit;
                 }
                 break;
+        }
+
+        // Say that it worked; a failure has already reported why.
+        $savedKey = match ($action) {
+            'enroll_zkp'     => 'user.zkp.saved',
+            'revoke_zkp'     => 'user.zkp.removed',
+            'create_api_key' => null, // the new key itself is shown instead
+            default          => 'user.settings.saved',
+        };
+        if ($savedKey !== null && isset($result) && $result->isOk()) {
+            $this->flash->set('success', $this->t->t($savedKey));
         }
     }
 

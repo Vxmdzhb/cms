@@ -18,6 +18,9 @@ return [
     'user.zkp.settings_hint' => 'Per aggiungere o sostituire una chiave, dimostra di possedere la nuova chiave e inserisci la password attuale. Anche la rimozione richiede una password valida. La modifica termina tutte le sessioni. Per un account con sola chiave, conserva una copia; se il recupero via email è configurato, recupera una password prima di sostituire una chiave persa.',
     'user.zkp.current_password' => 'Password attuale dell’account',
     'user.zkp.save' => 'Salva la chiave ed esci',
+    'user.settings.saved' => 'Salvato.',
+    'user.zkp.saved' => 'Chiave salvata. Tutte le sessioni sono state chiuse: accedi di nuovo con la chiave o con la password.',
+    'user.zkp.removed' => 'Chiave rimossa. Tutte le sessioni sono state chiuse: accedi di nuovo con la password.',
     'user.zkp.revoke' => 'Rimuovi la chiave ed esci',
     // -------------------------------------------------------------------------
     // Meta pagina — titolo e descrizione

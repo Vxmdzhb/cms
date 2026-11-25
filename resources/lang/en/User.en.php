@@ -22,6 +22,9 @@ return [
     'user.zkp.settings_hint' => 'To add or replace a key, prove possession of the new key and enter your current password. Removing a key also requires a working password. Changes sign out all sessions. For a key-only account, keep a backup; if email recovery is configured, recover a password before replacing a lost key.',
     'user.zkp.current_password' => 'Current account password',
     'user.zkp.save' => 'Save key and sign out',
+    'user.settings.saved' => 'Saved.',
+    'user.zkp.saved' => 'Key saved. Every session was signed out: sign in again with the key or your password.',
+    'user.zkp.removed' => 'Key removed. Every session was signed out: sign in again with your password.',
     'user.zkp.revoke' => 'Remove key and sign out',
     // -------------------------------------------------------------------------
     // Page meta — title and description for each user section page
