@@ -12,6 +12,12 @@ declare(strict_types=1);
  * Values match the page_meta DB fallbacks; override freely.
  */
 return [
+    'user.login.form_expired' => 'This login form expired. Please submit the new form.',
+    'user.login.captcha_failed' => 'The CAPTCHA was incorrect or expired. Please try the new one.',
+    'user.login.proof_failed' => 'The key proof was not accepted. Use the current challenge and try again.',
+    'user.login.credentials_failed' => 'Incorrect username or password.',
+    'user.login.verification_required' => 'Verify your email before logging in.',
+    'user.login.unavailable' => 'Login is temporarily unavailable. Please try again later.',
     'user.register.identifier_unavailable' => 'That username or account information is already in use. Please try different details.',
     'user.zkp.key_login' => 'Or log in with a key',
     'user.zkp.key_register' => 'Or sign up with a key',

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace AstrX\User\Controller;
 
+use AstrX\User\Diagnostic\UserNotVerifiedDiagnostic;
 use AstrX\User\LoginNotifier;
 use AstrX\Captcha\CaptchaService;
 use AstrX\Csrf\CsrfHandler;
@@ -84,7 +85,7 @@ final class LoginController extends AbstractController
         $csrfResult = $this->csrf->verify(self::FORM, $csrfToken);
         if (!$csrfResult->isOk()) {
             $csrfResult->drainTo($this->collector);
-            return $this->renderForm($username);
+            return $this->renderForm($username, errorKey: 'user.login.form_expired');
         }
 
         // Captcha check (before login attempt). Driven by a per-session failure
@@ -99,7 +100,7 @@ final class LoginController extends AbstractController
             $captchaResult = $this->captchaService->verify($captchaId, $captchaText);
             if (!$captchaResult->isOk()) {
                 $captchaResult->drainTo($this->collector);
-                return $this->renderForm($username, true);
+                return $this->renderForm($username, true, 'user.login.captcha_failed');
             }
         }
 
@@ -122,7 +123,14 @@ final class LoginController extends AbstractController
             $failCount = $this->bumpLoginFailCount();
             $showAfterResult = $this->userService->shouldShowLoginCaptcha($failCount);
             $showAfter = $showAfterResult->isOk() && (bool) $showAfterResult->unwrap();
-            return $this->renderForm($username, $showAfter);
+            $errorKey = $keyLogin ? 'user.login.proof_failed' : 'user.login.credentials_failed';
+            foreach ($loginResult->diagnostics() as $diagnostic) {
+                if ($diagnostic instanceof UserNotVerifiedDiagnostic) {
+                    $errorKey = 'user.login.verification_required';
+                    break;
+                }
+            }
+            return $this->renderForm($username, $showAfter, $errorKey);
         }
 
         // Success — clear the failure counter so the next visitor to this
@@ -145,7 +153,7 @@ final class LoginController extends AbstractController
         if (!$factor->isOk()) {
             unset($_SESSION['astrx_pending_2fa'], $_SESSION['astrx_pending_2fa_data'], $_SESSION['astrx_pending_2fa_ts']);
             $this->session->forgetSecrets();
-            return $factor;
+            return $this->renderForm($username, errorKey: 'user.login.unavailable');
         }
         if ($factor->unwrap()) {
             unset($userData['password']); // never stash the hash in the session
@@ -169,7 +177,7 @@ final class LoginController extends AbstractController
     }
 
     /** @return Result<mixed> */
-    private function renderForm(string $usernameValue = '', bool $showCaptcha = false): Result
+    private function renderForm(string $usernameValue = '', bool $showCaptcha = false, string $errorKey = ''): Result
     {
         $this->zkp->present($this->ctx, $this->t, 'login');
         $csrfToken    = $this->csrf->generate(self::FORM);
@@ -228,6 +236,7 @@ final class LoginController extends AbstractController
         $this->ctx->set('show_recover',       $this->userService->requireRecoveryEmail());
 
         $this->setI18n();
+        $this->ctx->set('login_error', $errorKey !== '' ? $this->t->t($errorKey) : '');
 
         return $this->ok();
     }
