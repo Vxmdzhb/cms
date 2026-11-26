@@ -134,6 +134,7 @@ return [
     'admin.users.hash_password' => 'Calcola l\'hash (togli la spunta per salvare così com\'è un hash già pronto)',
     'admin.users.birth'            => 'Data di nascita',
     'admin.users.login_attempts'   => 'Tentativi di accesso',
+    'admin.users.locked_until' => 'Bloccato fino a {time}. Salva con 0 tentativi falliti per sbloccarlo.',
     'admin.users.last_access'      => 'Ultimo accesso',
     'admin.users.token_hash'       => 'Hash token',
     'admin.users.token_type'       => 'Tipo token',

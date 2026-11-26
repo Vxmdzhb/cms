@@ -20,7 +20,7 @@
     {{^editing}}
     <tr{{#deleted}} style="opacity:0.4"{{/deleted}}>
     <td><code>{{id}}</code></td>
-    <td>{{username}}</td>
+    <td>{{username}}<br><small>{{locked_note}}</small></td>
     <td>{{mailbox}}</td>
     <td>{{type}}</td>
     <td><input type="checkbox" disabled {{#verified}}checked{{/verified}}></td>
@@ -90,7 +90,8 @@
             <label><input form="users-update-{{id}}" type="checkbox" name="verified" value="1"{{#verified}} checked{{/verified}}> {{label_verified}}</label><br>
             <label><input form="users-update-{{id}}" type="checkbox" name="deleted"  value="1"{{#deleted}}  checked{{/deleted}}>  {{label_deleted}}</label><br>
             <small>{{label_login_attempts}}</small><br>
-            <input form="users-update-{{id}}" type="number" name="login_attempts" class="input" value="{{login_attempts}}" style="width:5em" min="0">
+            <input form="users-update-{{id}}" type="number" name="login_attempts" class="input" value="{{login_attempts}}" style="width:5em" min="0"><br>
+            <small>{{locked_note}}</small>
         </td>
         <td>
             <small>{{label_created_at}}</small><br>

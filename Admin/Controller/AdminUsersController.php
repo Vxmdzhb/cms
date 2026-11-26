@@ -268,6 +268,12 @@ final class AdminUsersController extends AbstractController
                 );
                 $r->drainTo($this->collector);
 
+                // Zero failed attempts also lifts a running lockout: that is how
+                // an admin unlocks an account before its cooldown ends.
+                if ($r->isOk() && self::mInt($posted, 'login_attempts', 0) === 0) {
+                    $this->userRepo->setLockout($hexId, null)->drainTo($this->collector);
+                }
+
                 // Apply password change separately if requested.
                 if ($r->isOk() && $rawPassword !== '') {
                     $pwResult = $hashIt
@@ -453,6 +459,12 @@ final class AdminUsersController extends AbstractController
 
             $userList = [];
             foreach ($rawList as $row) {
+                // A locked account refuses even the right password with the
+                // generic "Incorrect username or password"; say so here.
+                $lockedUntil = is_string($row['locked_until'] ?? null) ? $row['locked_until'] : '';
+                $row['locked_note'] = $lockedUntil !== ''
+                    ? $this->t->t('admin.users.locked_until', ['time' => $lockedUntil])
+                    : '';
                 $isEditing = ($editId !== '' && $row['id'] === $editId);
                 if ($isEditing) {
                     $full = $this->userRepo->adminFindById($editId);
@@ -461,6 +473,7 @@ final class AdminUsersController extends AbstractController
                     $fd = ($full->isOk() && $full->unwrap() !== null) ? $full->unwrap() : $row;
                     $typeV = $fd['type'] ?? 0;
                     $fd['type_options'] = $this->buildTypeOptions(is_int($typeV) ? $typeV : (is_numeric($typeV) ? (int)$typeV : 0));
+                    $fd['locked_note']  = $row['locked_note'];
                     $row['editing'] = [$fd];
                 } else {
                     $row['editing'] = false;

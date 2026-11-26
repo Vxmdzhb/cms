@@ -397,6 +397,7 @@ return [
     'admin.users.hash_password' => 'Hash it (untick to store a ready-made hash as it is)',
     'admin.users.birth'             => 'Birth date',
     'admin.users.login_attempts'    => 'Login attempts',
+    'admin.users.locked_until' => 'Locked until {time}. Save with 0 failed attempts to unlock.',
     'admin.users.last_access'       => 'Last access',
     'admin.users.token_hash'        => 'Token hash',
     'admin.users.token_type'        => 'Token type',

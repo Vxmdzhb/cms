@@ -79,6 +79,8 @@ final class UserRepository
             "SELECT LOWER(HEX(`id`)) AS id, `username`, `mailbox`, `email`,
                     `display_name`, `type`, `verified`, `avatar`, `deleted`,
                     `login_attempts`,
+                    IF(`login_locked_until` > UNIX_TIMESTAMP(),
+                       DATE_FORMAT(FROM_UNIXTIME(`login_locked_until`), '%Y-%m-%d %H:%i'), '') AS locked_until,
                     DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s') AS created_at,
                     DATE_FORMAT(`last_access`, '%Y-%m-%d %H:%i:%s') AS last_access
                FROM `user`
@@ -527,12 +529,18 @@ final class UserRepository
      * pushing an already-armed window further out. (:th/:now are distinct from the
      * value bindings; native prepares forbid placeholder reuse.)
      *
+     * Arming the lock also restarts the count. Otherwise the counter stayed at
+     * the threshold (only a successful login clears it, and none is possible
+     * while locked), so after the cooldown a single typo, or one guess by a
+     * bot, locked the account again: its owner, typing the right password,
+     * was told "Incorrect username or password" indefinitely.
+     *
      * @return Result<bool>
      */
     public function armLockoutIfReached(string $hexId, int $threshold, int $until, int $now): Result
     {
         return $this->exec(
-            'UPDATE `user` SET `login_locked_until` = :u
+            'UPDATE `user` SET `login_locked_until` = :u, `login_attempts` = 0
               WHERE `id` = UNHEX(:id) AND `login_attempts` >= :th
                 AND (`login_locked_until` IS NULL OR `login_locked_until` < :now)',
             [':u' => $until, ':id' => $hexId, ':th' => $threshold, ':now' => $now],
