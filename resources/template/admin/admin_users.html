@@ -156,13 +156,18 @@
     <input type="hidden" name="prg_id" value="{{prg_id}}">
     <input type="hidden" name="_csrf" value="{{csrf_token}}">
     <input type="hidden" name="section" value="zkp">
-    <p><label><input type="checkbox" name="zkp_enabled" value="1"{{#cfg_zkp_enabled}} checked{{/cfg_zkp_enabled}}> {{zkp_label_enable}}</label></p>
-    <label for="zkp_origins">{{zkp_label_origins}}</label><br>
-    <textarea id="zkp_origins" name="zkp_origins" rows="3" cols="48" aria-describedby="zkp_origins_hint" spellcheck="false">{{cfg_zkp_origins}}</textarea>
-    <p id="zkp_origins_hint">{{zkp_label_hint}}</p>
-    <p><label>{{zkp_label_ttl}} <input type="number" name="zkp_ttl" min="60" max="600" required value="{{cfg_zkp_ttl}}"></label></p>
-    <p><label>{{zkp_label_help}} <input type="text" name="zkp_help" value="{{cfg_zkp_help}}"></label></p>
-    <button type="submit">{{btn_save}}</button>
+    <table>
+        <tr><th><label for="zkp_enabled">{{zkp_label_enable}}</label></th>
+            <td><input type="checkbox" id="zkp_enabled" name="zkp_enabled" value="1"{{#cfg_zkp_enabled}} checked{{/cfg_zkp_enabled}}></td></tr>
+        <tr><th><label for="zkp_origins">{{zkp_label_origins}}</label></th>
+            <td><textarea id="zkp_origins" name="zkp_origins" rows="3" class="input" style="width:100%" aria-describedby="zkp_origins_hint" spellcheck="false">{{cfg_zkp_origins}}</textarea><br>
+                <small id="zkp_origins_hint">{{zkp_label_hint}}</small></td></tr>
+        <tr><th><label for="zkp_ttl">{{zkp_label_ttl}}</label></th>
+            <td><input type="number" id="zkp_ttl" name="zkp_ttl" min="60" max="600" required value="{{cfg_zkp_ttl}}" class="input"></td></tr>
+        <tr><th><label for="zkp_help">{{zkp_label_help}}</label></th>
+            <td><input type="text" id="zkp_help" name="zkp_help" value="{{cfg_zkp_help}}" class="input" style="width:100%"></td></tr>
+        <tr><td colspan="2"><input type="submit" value="{{btn_save}}" class="input"></td></tr>
+    </table>
 </form>
 {{/can_set_zkp}}
 
@@ -200,9 +205,9 @@
         <tr><th>{{label_case_sensitive_usernames}}</th>
             <td><input type="checkbox" name="case_sensitive_usernames" value="1"{{#cfg_case_sensitive_usernames}} checked{{/cfg_case_sensitive_usernames}}></td></tr>
         <tr><th>{{label_minimum_age}}</th>
-            <td><input type="number" name="minimum_age" value="{{cfg_minimum_age}}" min="0" class="input"> s</td></tr>
+            <td><input type="number" name="minimum_age" value="{{cfg_minimum_age}}" min="0" class="input"></td></tr>
         <tr><th>{{label_maximum_age}}</th>
-            <td><input type="number" name="maximum_age" value="{{cfg_maximum_age}}" min="0" class="input"> s</td></tr>
+            <td><input type="number" name="maximum_age" value="{{cfg_maximum_age}}" min="0" class="input"></td></tr>
         <tr><th>{{label_login_captcha_type}}</th><td>
             <select name="login_captcha_type" class="input">
                 {{#login_captcha_options}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{label}}</option>{{/login_captcha_options}}
