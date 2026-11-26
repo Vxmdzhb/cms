@@ -18,6 +18,11 @@ return [
         'allow_register' => true,
         'allow_login_non_verified_users' => true,
         'require_email' => true,
+        // The account's mailbox is its username, so sign-up asks for neither a
+        // mailbox nor anything else beyond username and password. Turn off
+        // (together with WebmailService.mailbox_is_username, if module-webmail
+        // is installed) to let people choose a mailbox name.
+        'mailbox_is_username' => true,
         'require_recovery_email' => false,
         // Verification email policy:
         //   true  → after registration, a verification email is sent. User
@@ -33,7 +38,8 @@ return [
         //   false → the request appears to succeed but no email is sent, and an
         //           admin handles it (for sites that do recovery some other way).
         'send_password_reset_email' => true,
-        'require_display_name' => true,
+        // Off: a member is shown by username until they set a display name.
+        'require_display_name' => false,
         'require_birth_date' => false,
         'case_sensitive_usernames' => false,
         'minimum_age' => 0,

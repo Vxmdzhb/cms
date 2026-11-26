@@ -351,6 +351,7 @@ final class AdminUsersController extends AbstractController
                     ? self::mBool($p, 'allow_login_non_verified_users')
                     : $this->config->getConfigBool('UserService', 'allow_login_non_verified_users', false),
                 'require_email'                  => self::mBool($p, 'require_email'),
+                'mailbox_is_username'            => self::mBool($p, 'mailbox_is_username'),
                 'require_recovery_email'         => self::mBool($p, 'require_recovery_email'),
                 'send_verification_email'        => self::mBool($p, 'send_verification_email'),
                 'send_password_reset_email'      => self::mBool($p, 'send_password_reset_email'),
@@ -519,13 +520,14 @@ final class AdminUsersController extends AbstractController
             $this->ctx->set('cfg_allow_register',                 $this->config->getConfigBool('UserService', 'allow_register',                 true));
             $this->ctx->set('cfg_allow_login_non_verified_users', $this->config->getConfigBool('UserService', 'allow_login_non_verified_users', true));
             $this->ctx->set('cfg_require_email',                  $this->config->getConfigBool('UserService', 'require_email',                  true));
+            $this->ctx->set('cfg_mailbox_is_username',            $this->config->getConfigBool('UserService', 'mailbox_is_username',            true));
             $this->ctx->set('cfg_require_recovery_email',         $this->config->getConfigBool('UserService', 'require_recovery_email',         false));
             // Email transactional flags
             $this->ctx->set('cfg_send_verification_email',        $this->config->getConfigBool('UserService', 'send_verification_email',        true));
             $this->ctx->set('cfg_send_password_reset_email',      $this->config->getConfigBool('UserService', 'send_password_reset_email',      true));
             $this->ctx->set('cfg_site_url',                       $this->config->getConfigString('EmailService','site_url',                     ''));
             $this->ctx->set('cfg_site_name',                      $this->config->getConfigString('EmailService','site_name',                    'AstrX'));
-            $this->ctx->set('cfg_require_display_name',           $this->config->getConfigBool('UserService', 'require_display_name',           true));
+            $this->ctx->set('cfg_require_display_name',           $this->config->getConfigBool('UserService', 'require_display_name',           false));
             $this->ctx->set('cfg_require_birth_date',             $this->config->getConfigBool('UserService', 'require_birth_date',             false));
             $this->ctx->set('cfg_case_sensitive_usernames',       $this->config->getConfigBool('UserService', 'case_sensitive_usernames',       false));
             $this->ctx->set('cfg_minimum_age',                    $this->config->getConfigInt('UserService', 'minimum_age',                    0));
@@ -677,6 +679,7 @@ final class AdminUsersController extends AbstractController
             $this->ctx->set('label_allow_register',                $this->t->t('admin.config.field.allow_register'));
             $this->ctx->set('label_allow_login_non_verified_users',$this->t->t('admin.config.field.allow_login_non_verified_users'));
             $this->ctx->set('label_require_email',                 $this->t->t('admin.config.field.require_email_user'));
+            $this->ctx->set('label_mailbox_is_username',           $this->t->t('admin.config.field.mailbox_is_username'));
             $this->ctx->set('label_require_recovery_email',        $this->t->t('admin.config.field.require_recovery_email'));
             // Email transactional flags
             $this->ctx->set('label_send_verification_email',       $this->t->t('admin.config.field.send_verification_email'));

@@ -223,6 +223,7 @@ return [
     'admin.config.field.allow_register'           => 'Allow registration',
     'admin.config.field.allow_login_non_verified_users' => 'Allow unverified logins',
     'admin.config.field.require_email_user'       => 'Require email',
+    'admin.config.field.mailbox_is_username'      => 'Mailbox is the username (sign-up asks for no mailbox)',
     'admin.config.field.require_recovery_email'   => 'Require recovery email',
     'admin.config.field.require_display_name'     => 'Require display name',
     'admin.config.field.require_birth_date'       => 'Require birth date',

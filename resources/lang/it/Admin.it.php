@@ -465,6 +465,7 @@ return [
     'admin.config.field.allow_register'           => 'Consenti registrazione',
     'admin.config.field.allow_login_non_verified_users' => 'Consenti accessi non verificati',
     'admin.config.field.require_email_user'       => 'Richiedi email',
+    'admin.config.field.mailbox_is_username'      => 'La casella è il nome utente (la registrazione non chiede la casella)',
     'admin.config.field.require_recovery_email'   => 'Richiedi email di recupero',
     'admin.config.field.require_display_name'     => 'Richiedi nome visualizzato',
     'admin.config.field.require_birth_date'       => 'Richiedi data di nascita',

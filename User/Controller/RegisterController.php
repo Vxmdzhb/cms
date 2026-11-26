@@ -61,11 +61,18 @@ final class RegisterController extends AbstractController
         parent::__construct($collector);
     }
 
-    /** Whether an installed module names mailboxes after usernames (MailboxNaming). */
+    /**
+     * Whether a new account's mailbox is its username: the site's own
+     * UserService.mailbox_is_username, or an installed module that names
+     * mailboxes that way (MailboxNaming). Either is enough: a mailbox equal to
+     * the username is right whichever of them reads it. The form asks for a
+     * separate mailbox only when both are off.
+     */
     private function mailboxIsUsername(): bool
     {
         if ($this->mailboxIsUsername === null) {
-            $this->mailboxIsUsername = false;
+            $this->mailboxIsUsername = $this->userService->mailboxIsUsername();
+            if ($this->mailboxIsUsername) { return true; }
             foreach ($this->modules->extensions(MailboxNaming::class, installedToo: true) as $naming) {
                 if ($naming->mailboxIsUsername()) {
                     $this->mailboxIsUsername = true;

@@ -136,7 +136,8 @@ final class UserService
     private bool   $requireEmail          = true;
     private bool   $requireRecoveryEmail  = false;
     private bool   $requireBirthDate      = false;
-    private bool   $requireDisplayName    = true;
+    private bool   $requireDisplayName    = false;
+    private bool   $mailboxIsUsername     = true;
     private int    $minimumAge            = 0;
     private int    $maximumAge            = 0;
     // Default ALWAYS, not ON_X_FAILED: the failure counter that mode reads lives
@@ -178,6 +179,8 @@ final class UserService
     public function setRequireBirthDate(bool $v): void { $this->requireBirthDate = $v; }
     #[InjectConfig('require_display_name')]
     public function setRequireDisplayName(bool $v): void { $this->requireDisplayName = $v; }
+    #[InjectConfig('mailbox_is_username')]
+    public function setMailboxIsUsername(bool $v): void { $this->mailboxIsUsername = $v; }
     #[InjectConfig('minimum_age')]
     public function setMinimumAge(int $v): void { $this->minimumAge = max(0, $v); }
     #[InjectConfig('maximum_age')]
@@ -241,6 +244,7 @@ final class UserService
     public function requireRecoveryEmail(): bool { return $this->requireRecoveryEmail; }
     public function requireBirthDate(): bool     { return $this->requireBirthDate; }
     public function requireDisplayName(): bool   { return $this->requireDisplayName; }
+    public function mailboxIsUsername(): bool    { return $this->mailboxIsUsername; }
     public function allowRegister(): bool              { return $this->allowRegister; }
     public function allowLoginNonVerifiedUsers(): bool   { return $this->allowLoginNonVerified; }
 
