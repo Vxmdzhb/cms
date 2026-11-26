@@ -88,7 +88,7 @@ final class AdminNewsController extends AbstractController
         }
         $this->ctx->set('news_list', $newsList);
         $this->ctx->set('base_url',  $selfUrl);
-        $this->ctx->set('edit_url_prefix', $selfUrl . (str_contains($selfUrl, '?') ? '&' : '?') . 'edit=');
+        $this->ctx->set('edit_url_prefix', $this->urlGen->paramPrefix($selfUrl, 'edit'));
         $this->setI18n();
         return $this->ok();
     }

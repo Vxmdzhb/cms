@@ -113,7 +113,6 @@ final class AdminNavbarController extends AbstractController
         $this->ctx->set('csrf_token',     $csrfToken);
         $this->ctx->set('prg_id',         $prgId);
         $this->ctx->set('available_pages', $pages);
-        $this->ctx->set('query_url', $selfUrl . (str_contains($selfUrl, '?') ? '&' : '?'));
 
         // Decorate navbars: active flag, navbar_id, pin_id, editing flags
         /** @var list<array<string,mixed>> $navbars */
@@ -125,6 +124,10 @@ final class AdminNavbarController extends AbstractController
             foreach ($pins as &$pin) {
                 /** @var array<string,mixed> $pin */
                 $pin['navbar_id'] = $nb['id'];
+                $nbId  = self::mInt($nb, 'id');
+                $pinId = self::mInt($pin, 'id');
+                $pin['edit_url']   = $this->urlGen->toPage($resolvedUrlId, ['nb' => $nbId, 'pin' => $pinId]);
+                $pin['cancel_url'] = $this->urlGen->toPage($resolvedUrlId, ['nb' => $nbId]);
                 $pinIsEditing = ($pin['id'] === $activePin && $nb['id'] === $activeNavbar);
                 $pin['editing'] = $pinIsEditing && $activeEntry === 0;
                 $entries = is_array($pin['entries'] ?? null) ? $pin['entries'] : [];
@@ -132,6 +135,8 @@ final class AdminNavbarController extends AbstractController
                     /** @var array<string,mixed> $entry */
                     $entry['navbar_id'] = $nb['id'];
                     $entry['pin_id']    = $pin['id'];
+                    $entry['edit_url']   = $this->urlGen->toPage($resolvedUrlId, ['nb' => $nbId, 'pin' => $pinId, 'entry' => self::mInt($entry, 'id')]);
+                    $entry['cancel_url'] = $pin['edit_url'];
                     if ($pinIsEditing && $entry['id'] === $activeEntry) {
                         // Mark the selected page option
                         $editingPageId = self::mInt($entry, 'page_id', 0);

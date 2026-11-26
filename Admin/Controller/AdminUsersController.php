@@ -447,7 +447,7 @@ final class AdminUsersController extends AbstractController
         $this->ctx->set('can_manage',  $canManage);
         $this->ctx->set('can_config',  $canConfig);
         $this->ctx->set('base_url',    $selfUrl);
-        $this->ctx->set('edit_url_prefix', $selfUrl . (str_contains($selfUrl, '?') ? '&' : '?') . 'edit=');
+        $this->ctx->set('edit_url_prefix', $this->urlGen->paramPrefix($selfUrl, 'edit'));
         $this->ctx->set('csrf_token',  $csrfToken);
         $this->ctx->set('prg_id',      $prgId);
 

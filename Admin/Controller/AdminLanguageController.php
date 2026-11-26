@@ -319,7 +319,6 @@ final class AdminLanguageController extends AbstractController
      */
     private function buildDomainNav(string $selfUrl, string $currentDomain, string $currentLang): void
     {
-        $suffix  = '&edit_lang=' . rawurlencode($currentLang);
         $domains = $this->catalog->domains();
         usort($domains, static fn(string $a, string $b): int => strcmp(strtolower($a), strtolower($b)));
 
@@ -327,7 +326,7 @@ final class AdminLanguageController extends AbstractController
         foreach ($domains as $d) {
             $nav[] = [
                 'label'    => ucfirst($d),
-                'url'      => $selfUrl . (str_contains($selfUrl, '?') ? '&' : '?') . 'domain=' . rawurlencode($d) . $suffix,
+                'url'      => $this->urlGen->withParams($selfUrl, ['domain' => $d, 'edit_lang' => $currentLang]),
                 'd_active' => $d === $currentDomain,
             ];
         }
@@ -376,7 +375,7 @@ final class AdminLanguageController extends AbstractController
         foreach ($this->catalog->locales() as $l) {
             $tabs[] = [
                 'code'     => $l,
-                'url'      => $selfUrl . (str_contains($selfUrl, '?') ? '&' : '?') . 'domain=' . rawurlencode($domain) . '&edit_lang=' . rawurlencode($l),
+                'url'      => $this->urlGen->withParams($selfUrl, ['domain' => $domain, 'edit_lang' => $l]),
                 'l_active' => $l === $lang,
             ];
         }

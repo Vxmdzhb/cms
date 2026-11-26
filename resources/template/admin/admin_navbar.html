@@ -52,7 +52,7 @@
             {{#alpha}}{{sort_alpha}}{{/alpha}}{{#custom}}{{sort_custom}}{{/custom}},
             {{label_sort}} {{sort_order}}
             &nbsp;
-            <a href="{{query_url}}nb={{navbar_id}}&amp;pin={{id}}" class="input">{{btn_edit}}</a>
+            <a href="{{edit_url}}" class="input">{{btn_edit}}</a>
             &nbsp;
             <form method="POST" style="display:inline">
                 <input type="hidden" name="prg_id"    value="{{prg_id}}">
@@ -83,7 +83,7 @@
                 <input type="submit" value="{{btn_update}}" class="input">
             </form>
             &nbsp;
-            <a href="{{query_url}}nb={{navbar_id}}" class="input">{{btn_cancel}}</a>
+            <a href="{{cancel_url}}" class="input">{{btn_cancel}}</a>
             {{/editing}}
         </legend>
 
@@ -115,7 +115,7 @@
             <td>{{sort_order}}</td>
             <td><input type="checkbox" disabled {{#active}}checked{{/active}}></td>
             <td>
-                <a href="{{query_url}}nb={{navbar_id}}&amp;pin={{pin_id}}&amp;entry={{id}}" class="input">{{btn_edit}}</a>
+                <a href="{{edit_url}}" class="input">{{btn_edit}}</a>
                 <form method="POST" style="display:inline">
                     <input type="hidden" name="prg_id"    value="{{prg_id}}">
                     <input type="hidden" name="_csrf"     value="{{csrf_token}}">
@@ -175,7 +175,7 @@
                 <td><input form="edit-entry-{{id}}" type="checkbox" name="active" value="1"{{#active}} checked{{/active}}></td>
                 <td>
                     <input form="edit-entry-{{id}}" type="submit" value="{{btn_update}}" class="input">
-                    <a href="{{query_url}}nb={{navbar_id}}&amp;pin={{pin_id}}" class="input">{{btn_cancel}}</a>
+                    <a href="{{cancel_url}}" class="input">{{btn_cancel}}</a>
                 </td>
             </tr>
             {{/editing}}
