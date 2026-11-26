@@ -217,12 +217,12 @@ final class AdminUsersController extends AbstractController
 
         switch ($action) {
             case 'update':
-                // Password hashing delegated to UserService. A value that
-                // password_get_info() recognises is a hash (a restore or a
-                // migration) and is stored as is; anything else is a new
-                // password and is hashed. Not trimmed: spaces can be part of it.
+                // Password hashing delegated to UserService. The "hash it" box
+                // is ticked by default, so a typed password is hashed; unticked,
+                // the value must already be a password_hash() hash and is stored
+                // as is. Not trimmed: spaces can be part of a password.
                 $rawPassword = self::mStr($posted, 'password', '');
-                $hashIt      = $rawPassword !== '' && (password_get_info($rawPassword)['algo'] ?? null) === null;
+                $hashIt      = self::mBool($posted, 'hash_password');
 
                 // FIX H6: role (`type`) privilege-escalation guard. USER_EDIT_ANY
                 // (checked above) is NOT enough to change a user's group. A role
@@ -626,6 +626,7 @@ final class AdminUsersController extends AbstractController
             $this->ctx->set('label_mailbox',        $this->t->t('admin.users.mailbox'));
             $this->ctx->set('label_email',          $this->t->t('admin.users.email'));
             $this->ctx->set('label_password',       $this->t->t('admin.users.password'));
+            $this->ctx->set('label_hash_password',  $this->t->t('admin.users.hash_password'));
             $this->ctx->set('label_password_hint',  $this->t->t('admin.users.password_hint'));
             $this->ctx->set('label_birth',          $this->t->t('admin.users.birth'));
             $this->ctx->set('label_type',           $this->t->t('admin.field.type'));
