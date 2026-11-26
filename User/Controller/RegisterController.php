@@ -299,7 +299,7 @@ final class RegisterController extends AbstractController
             return $this->ok();
         }
 
-        $this->zkp->present($this->ctx, $this->t, 'register', $this->urlGen->toPage($this->t->t('WORDING_ZKP_CLIENT')));
+        $this->zkp->present($this->ctx, $this->t, 'register', $this->urlGen->toPage($this->t->t('WORDING_ZKP_CLIENT')), $username);
         $csrfToken = $this->csrf->generate(self::FORM);
         $pageUrl   = $this->urlGen->toPage($this->t->t('WORDING_REGISTER'));
         $prgId     = $this->prg->createId($pageUrl);

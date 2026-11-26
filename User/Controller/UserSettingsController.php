@@ -370,7 +370,7 @@ final class UserSettingsController extends AbstractController
         }
 
         $hasAvatar       = $this->session->hasAvatar();
-        $this->zkp->present($this->ctx, $this->t, 'enroll', $this->urlGen->toPage($this->t->t('WORDING_ZKP_CLIENT')));
+        $this->zkp->present($this->ctx, $this->t, 'enroll', $this->urlGen->toPage($this->t->t('WORDING_ZKP_CLIENT')), $this->session->username());
         $this->ctx->set('zkp_current_key', '');
         if ($this->zkp->origin() !== null) {
             $key = $this->userService->publicKeyFor($hexId)->drainTo($this->collector);

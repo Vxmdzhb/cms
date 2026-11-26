@@ -9,9 +9,10 @@ return [
         // No trailing slash; never populate this dynamically from Host headers.
         'origins' => [],
         'challenge_ttl' => 300,
-        // Where "How do I get a key?" points: a page on your site (a wiki page,
-        // say), or the guide in the AstrX repository. Empty hides the link.
-        'help_url' => 'https://github.com/Vxmdzhb/astrx/blob/main/docs/zkp-auth.md#user-commands',
+        // An optional "How do I get a key?" link under the key form: a page on
+        // your site (a wiki page, say). Empty hides the link; the sign-up and
+        // settings pages show the key-generation command either way.
+        'help_url' => '',
     ],
     'UserService' => [
         'token_expiration_time' => 21600,

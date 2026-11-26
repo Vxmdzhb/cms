@@ -148,8 +148,11 @@ final class ZkpService
      *
      * @param string $clientUrl where zkp_client.py can be downloaded; empty
      *                          shows the command without a link
+     * @param string $username  the account name for the key-generation command
+     *                          (sign-up re-renders and settings); empty shows a
+     *                          placeholder
      */
-    public function present(TemplateVars $ctx, Translator $t, string $action, string $clientUrl = ''): void
+    public function present(TemplateVars $ctx, Translator $t, string $action, string $clientUrl = '', string $username = ''): void
     {
         // AstrX resolves partial tags through the context, not literal filenames.
         $ctx->set('zkp_auth', 'partials/zkp_auth');
@@ -171,6 +174,20 @@ final class ZkpService
             }
             $ctx->set('zkp_summary', $t->t($action === 'register' ? 'user.zkp.key_register' : 'user.zkp.key_login'));
             $ctx->set('zkp_action', $action);
+            // Sign-up and settings also show how to make a key, so nobody has
+            // to look for a guide elsewhere. The key is bound to every origin
+            // the site answers on (clearnet and onion), current one first.
+            $keygen = $action !== 'login';
+            $ctx->set('zkp_show_keygen', $keygen);
+            if ($keygen) {
+                $origins = array_values(array_unique([$origin, ...array_filter($this->origins, self::validOrigin(...))]));
+                $ctx->set('zkp_keygen_origins', implode(' ', array_map(static fn (string $o): string => '--origin ' . $o, $origins)));
+                $placeholder = $t->t('user.zkp.username_placeholder');
+                $ctx->set('zkp_keygen_username', $username !== '' ? $username : $placeholder);
+                $ctx->set('zkp_keygen_label', $action === 'register'
+                    ? $t->t('user.zkp.keygen_register', ['placeholder' => $placeholder])
+                    : $t->t('user.zkp.keygen_enroll'));
+            }
             $ctx->set('zkp_has_client', $clientUrl !== '');
             $ctx->set('zkp_client_url', $clientUrl);
             $ctx->set('zkp_has_help', $this->helpUrl !== '');

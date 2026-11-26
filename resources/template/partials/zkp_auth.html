@@ -1,7 +1,12 @@
 {{#zkp_available}}
 <div style="margin:12px 0">
-  <p><strong>{{zkp_summary}}</strong><br>{{zkp_instructions}}</p>
-  <pre>python3 {{#zkp_has_client}}<a href="{{zkp_client_url}}" download="zkp_client.py">zkp_client.py</a>{{/zkp_has_client}}{{^zkp_has_client}}zkp_client.py{{/zkp_has_client}} prove --key astrx.key --action {{zkp_action}}</pre>
+  <p><strong>{{zkp_summary}}</strong></p>
+  {{#zkp_show_keygen}}
+  <p>{{zkp_keygen_label}}</p>
+  <pre style="white-space:pre-wrap;word-break:break-all">python3 {{#zkp_has_client}}<a href="{{zkp_client_url}}" download="zkp_client.py">zkp_client.py</a>{{/zkp_has_client}}{{^zkp_has_client}}zkp_client.py{{/zkp_has_client}} keygen --key astrx.key {{zkp_keygen_origins}} --username {{zkp_keygen_username}}</pre>
+  {{/zkp_show_keygen}}
+  <p>{{zkp_instructions}}</p>
+  <pre style="white-space:pre-wrap;word-break:break-all">python3 {{#zkp_has_client}}<a href="{{zkp_client_url}}" download="zkp_client.py">zkp_client.py</a>{{/zkp_has_client}}{{^zkp_has_client}}zkp_client.py{{/zkp_has_client}} prove --key astrx.key --action {{zkp_action}}</pre>
   <label>{{zkp_challenge_label}}<br><textarea rows="3" cols="64" readonly spellcheck="false">{{zkp_challenge}}</textarea></label><br>
   <label>{{zkp_proof_label}}<br><textarea name="zkp_proof" rows="3" cols="64" maxlength="4096" autocomplete="off" spellcheck="false"></textarea></label>
   {{#zkp_has_help}}<p><a href="{{zkp_help_url}}">{{zkp_help}}</a></p>{{/zkp_has_help}}
