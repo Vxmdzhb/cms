@@ -11,6 +11,8 @@ use AstrX\Routing\CurrentUrl;
 use AstrX\User\AvatarService;
 use AstrX\User\UserRepository;
 use AstrX\Kernel\AbstractController;
+use AstrX\Kernel\ReadsPathSegments;
+use AstrX\Routing\PathParameters;
 
 /**
  * Raw avatar image endpoint — no template wrapping.
@@ -26,7 +28,7 @@ use AstrX\Kernel\AbstractController;
  * Calls exit after outputting so ContentManager does not try to
  * set a 204 response code over an already-output image.
  */
-final class AvatarController extends AbstractController
+final class AvatarController extends AbstractController implements ReadsPathSegments
 {
     public function __construct(
         DiagnosticsCollector        $collector,
@@ -41,10 +43,15 @@ final class AvatarController extends AbstractController
 
     public function handle(): Result
     {
+        // /avatar/<hex id> is a member's avatar; /avatar/seed/<hex> (or the
+        // older ?uid= and ?seed=) the parameters below.
+        $tail   = $this->currentUrl->tail();
+        $params = PathParameters::parse($tail);
+
         // ── Guest identicon by arbitrary seed ─────────────────────────────
-        // ?seed=<hex> serves an identicon seeded from any hex string.
+        // seed=<hex> serves an identicon seeded from any hex string.
         // Used for guest comment avatars (seed = sha256 of name+ip).
-        $seed = (is_scalar($vseed = $this->request->query()->get('seed') ?? '') ? (string)$vseed : '');
+        $seed = $params['seed'] ?? (is_scalar($vseed = $this->request->query()->get('seed') ?? '') ? (string)$vseed : '');
         if ($seed !== '') {
             if (!ctype_xdigit($seed)) {
                 http_response_code(400);
@@ -63,8 +70,8 @@ final class AvatarController extends AbstractController
         }
 
         // ── Registered user avatar ────────────────────────────────────────
-        $hexId = $this->currentUrl->tailSegment(0)
-                 ?? (is_scalar($vuid = $this->request->query()->get('uid') ?? '') ? (string)$vuid : '');
+        $hexId = count($tail) === 1 ? $tail[0]
+                 : ($params['uid'] ?? (is_scalar($vuid = $this->request->query()->get('uid') ?? '') ? (string)$vuid : ''));
 
         if ($hexId === '' || !ctype_xdigit($hexId) || strlen($hexId) !== 32) {
             http_response_code(404);

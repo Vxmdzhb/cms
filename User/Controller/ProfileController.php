@@ -18,6 +18,8 @@ use AstrX\User\UserGroup;
 use AstrX\User\UserRepository;
 use AstrX\User\UserSession;
 use AstrX\Kernel\AbstractController;
+use AstrX\Kernel\ReadsPathSegments;
+use AstrX\Routing\PathParameters;
 
 /**
  * Public user profile page.
@@ -32,7 +34,7 @@ use AstrX\Kernel\AbstractController;
  *   /en/profile/alice  — public profile for user 'alice'
  *   /en/profile?uid=<hexId>  — same but by ID (used internally)
  */
-final class ProfileController extends AbstractController
+final class ProfileController extends AbstractController implements ReadsPathSegments
 {
     public function __construct(
         DiagnosticsCollector $collector,
@@ -108,8 +110,10 @@ final class ProfileController extends AbstractController
 
     /**
      * Try to identify the target user from (in order):
-     *   1. URL tail segment (username)
-     *   2. ?uid= query param (hex id)
+     *   1. URL tail segment (username): /en/profile/alice
+     *   2. the uid parameter (hex id): /en/profile/uid/<hex>, or ?uid=<hex>.
+     *      A username is one segment and a uid pair two, so a user called
+     *      "uid" still has /en/profile/uid.
      *   3. Logged-in user's own session
      * @return array<string,mixed>|null
      */
@@ -117,7 +121,8 @@ final class ProfileController extends AbstractController
     : ?array
     {
         // 1. Rewrite tail: /en/profile/alice
-        $tailUsername = $this->currentUrl->tailSegment(0);
+        $tail = $this->currentUrl->tail();
+        $tailUsername = count($tail) === 1 ? $tail[0] : null;
         if ($tailUsername !== null && $tailUsername !== '') {
             $result = $this->userRepo->findPublicByUsername($tailUsername);
             $result->drainTo($this->collector);
@@ -125,8 +130,8 @@ final class ProfileController extends AbstractController
             return $result->isOk() ? $result->unwrap() : null;
         }
 
-        // 2. ?uid=<hexId>
-        $uid = $this->request->query()->get('uid');
+        // 2. /uid/<hexId> or ?uid=<hexId>
+        $uid = PathParameters::parse($tail)['uid'] ?? $this->request->query()->get('uid');
         if (is_string($uid) &&
             $uid !== '' &&
             ctype_xdigit($uid) &&
@@ -164,7 +169,7 @@ final class ProfileController extends AbstractController
         if (!$hasAvatar && !$this->avatarService->useIdenticons()) {
             return '';
         }
-        return $this->urlGen->toPage('avatar', ['uid' => $hexId]);
+        return $this->urlGen->toPagePath('avatar', [$hexId]);
     }
 
     private function resolveGroupLabel(int $type)
